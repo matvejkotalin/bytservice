@@ -544,7 +544,7 @@ async function loadReviews() {
     }
 }
 
-loadReviews();
+if (!window.location.pathname.includes('reviews.html')) loadReviews();
 
 // Форма отзыва
 let selectedRating = 5;
