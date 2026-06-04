@@ -538,7 +538,7 @@ async function loadReviews() {
                             <div style="color:#f59e0b;font-size:17px;margin-top:2px;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
                         </div>
                     </div>
-                    <p style="color:#374151;font-size:14px;line-height:1.65;flex:1;">${esc(r.text)}</p>
+                   <p style="color:#374151;font-size:14px;line-height:1.65;flex:1;word-break:break-word;overflow-wrap:break-word;">${esc(r.text)}</p>
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid #f3f4f6;">
                         ${r.device_type ? `<span style="background:#f3f4f6;color:#6b7280;font-size:12px;padding:4px 10px;border-radius:20px;font-weight:600;">${esc(r.device_type)}</span>` : '<span></span>'}
                         <span style="font-size:12px;color:#9ca3af;">${fmtDate(r.created_at)}</span>
