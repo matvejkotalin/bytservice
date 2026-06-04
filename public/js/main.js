@@ -519,31 +519,37 @@ if (appointmentForm) {
 async function loadReviews() {
     const container = document.getElementById('reviews-container');
     if (!container) return;
+    if (window.location.pathname.includes('reviews.html')) return;
+
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function fmtDate(str) { return new Date(str).toLocaleDateString('ru-RU', { day:'numeric', month:'long', year:'numeric' }); }
 
     try {
         const res = await fetch(`${API}/reviews`);
         const result = await res.json();
 
         if (result.success && result.data.length > 0) {
-            container.innerHTML = result.data.map(r => `
-                <div class="review-card">
-                    <div class="review-top">
-                        <div class="review-avatar">${r.client_name[0].toUpperCase()}</div>
+            container.innerHTML = result.data.slice(0, 6).map(r => `
+                <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,0.07);border:1px solid #f0f0f0;display:flex;flex-direction:column;min-width:0;box-sizing:border-box;">
+                    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+                        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#e63329,#c0271e);color:white;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${esc(r.client_name[0]).toUpperCase()}</div>
                         <div>
-                            <div class="review-name">${r.client_name}</div>
-                            <div class="review-stars">${'&#9733;'.repeat(r.rating)}${'&#9734;'.repeat(5 - r.rating)}</div>
+                            <div style="font-weight:700;font-size:15px;font-family:Montserrat,sans-serif;">${esc(r.client_name)}</div>
+                            <div style="color:#f59e0b;font-size:17px;margin-top:2px;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
                         </div>
                     </div>
-                    <p>${r.text}</p>
-                    ${r.device_type ? `<div class="review-date">${r.device_type}</div>` : ''}
+                    <p style="color:#374151;font-size:14px;line-height:1.65;flex:1;">${esc(r.text)}</p>
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid #f3f4f6;">
+                        ${r.device_type ? `<span style="background:#f3f4f6;color:#6b7280;font-size:12px;padding:4px 10px;border-radius:20px;font-weight:600;">${esc(r.device_type)}</span>` : '<span></span>'}
+                        <span style="font-size:12px;color:#9ca3af;">${fmtDate(r.created_at)}</span>
+                    </div>
                 </div>
             `).join('');
         }
     } catch (e) {
-        console.log('Сервер недоступен, показываем статичные отзывы');
+        console.log('Сервер недоступен');
     }
 }
-
 if (!window.location.pathname.includes('reviews.html')) loadReviews();
 
 // Форма отзыва
