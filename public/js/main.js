@@ -910,8 +910,7 @@ async function loadRatingStats() {
         console.log('Не удалось загрузить статистику отзывов');
     }
 }
-loadRatingStats();
-
+if (!window.location.pathname.includes('reviews.html')) loadRatingStats();
 // ============================================
 // АНИМАЦИИ И УТИЛИТЫ
 // ============================================
