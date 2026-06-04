@@ -1,0 +1,1858 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>БытСервис</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 24px;
+            padding: 32px 0 48px;
+            align-items: start;
+        }
+        @media (max-width: 768px) { .admin-layout { grid-template-columns: 1fr; } }
+
+        .admin-sidebar-card {
+            background: white;
+            border-radius: 16px;
+            padding: 8px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 90px;
+        }
+        .admin-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            transition: all 0.2s;
+        }
+        .admin-nav-item:hover { background: #f5f6fa; color: var(--primary); }
+        .admin-nav-item.active { background: rgba(230,51,41,0.08); color: var(--primary); }
+        .admin-nav-item svg { flex-shrink: 0; }
+
+        .admin-content { min-width: 0; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr 1fr; } }
+
+        .stat-card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+        .stat-card-num {
+            font-size: 36px;
+            font-weight: 800;
+            font-family: 'Montserrat', sans-serif;
+            color: var(--primary);
+        }
+        .stat-card-label { font-size: 13px; color: var(--gray); margin-top: 4px; }
+
+        .admin-table-wrap {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        .admin-table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .admin-table-header h3 { font-size: 16px; }
+        table.admin-table { width: 100%; border-collapse: collapse; }
+        .admin-table th {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .admin-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f5f5f5;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+        .admin-table tr:last-child td { border-bottom: none; }
+        .admin-table tr:hover td { background: #fafafa; }
+
+        .status-select {
+            padding: 5px 10px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            background: white;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+            padding: 40px 0;
+            margin-bottom: 0;
+        }
+        .page-header h1 { font-size: 28px; }
+        .page-header p { color: rgba(255,255,255,0.6); margin-top: 6px; font-size: 14px; }
+
+        .empty-state { padding: 40px; text-align: center; color: var(--gray); font-size: 14px; }
+
+        /* Карточки заявок */
+        .orders-cards { display: flex; flex-direction: column; gap: 0; }
+
+        .order-card {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.15s;
+        }
+        .order-card:last-child { border-bottom: none; }
+        .order-card:hover { background: #fafafa; }
+
+        .order-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .order-card-id-block { display: flex; align-items: center; gap: 12px; }
+        .order-card-id { font-size: 15px; font-weight: 700; color: var(--text); }
+        .order-card-date { font-size: 12px; color: var(--gray); }
+
+        .order-card-body {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        @media (max-width: 900px) { .order-card-body { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 600px) { .order-card-body { grid-template-columns: 1fr; } }
+
+        .order-card-col { display: flex; flex-direction: column; gap: 8px; }
+
+        .order-field { display: flex; flex-direction: column; gap: 2px; }
+        .order-field-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray);
+        }
+        .order-field-val { font-size: 14px; color: var(--text); }
+        .order-urgent { color: #e63329; font-weight: 700; }
+
+        .order-card-problem {
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text);
+            border-left: 3px solid var(--primary);
+        }
+
+        .quick-actions {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-top: 20px;
+        }
+        .quick-actions h3 { font-size: 16px; margin-bottom: 16px; }
+        .quick-actions-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+
+        /* Таблица услуг */
+        .services-admin-category { border-bottom: 2px solid #f0f0f0; }
+        .services-admin-category:last-child { border-bottom: none; }
+        .services-admin-cat-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 24px; background: #f8f9fa;
+            font-size: 13px; font-weight: 700; color: var(--text);
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .svc-status-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 20px;
+            font-size: 12px; font-weight: 600;
+        }
+        .svc-status-badge.active { background: #dcfce7; color: #16a34a; }
+        .svc-status-badge.inactive { background: #f3f4f6; color: #9ca3af; }
+        .btn-icon-edit, .btn-icon-delete {
+            width: 30px; height: 30px; border-radius: 8px; border: none;
+            cursor: pointer; display: inline-flex; align-items: center;
+            justify-content: center; transition: all 0.15s;
+        }
+        .btn-icon-edit { background: #eff6ff; color: #3b82f6; }
+        .btn-icon-edit:hover { background: #3b82f6; color: white; }
+        .btn-icon-delete { background: #fff1f1; color: #e63329; margin-left: 4px; }
+        .btn-icon-delete:hover { background: #e63329; color: white; }
+
+        /* ── Назначение мастера ── */
+        .assign-card {
+            background: white; border-radius: 16px;
+            box-shadow: var(--shadow); overflow: hidden;
+            margin-bottom: 14px;
+        }
+        .assign-card-head {
+            display: flex; align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background .15s;
+        }
+        .assign-card-head:hover { background: #fafafa; }
+        .assign-card-id  { font-size: 13px; font-weight: 700; color: #6b7280; }
+        .assign-card-title { font-size: 14px; font-weight: 600; color: var(--text); }
+        .assign-card-body { padding: 16px 20px; display: none; }
+        .assign-card-body.open { display: block; }
+
+        .assign-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        @media (max-width: 600px) { .assign-form-grid { grid-template-columns: 1fr; } }
+
+        .assign-field label {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .5px; color: #6b7280; display: block; margin-bottom: 5px;
+        }
+
+        /* ── Уведомления в админке ── */
+        .notif-admin-item {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 14px 20px; border-bottom: 1px solid #f5f5f5;
+            transition: background .15s;
+        }
+        .notif-admin-item:last-child { border-bottom: none; }
+        .notif-admin-item:hover { background: #fafafa; }
+        .notif-admin-item.unread { background: #eff6ff; }
+        .notif-admin-item.type-order_ready   { border-left: 3px solid #22c55e; }
+        .notif-admin-item.type-deadline_risk { border-left: 3px solid #e63329; }
+        .notif-admin-item.type-urgent_added  { border-left: 3px solid #f59e0b; }
+        .notif-icon-big { font-size: 22px; flex-shrink: 0; line-height: 1; }
+        .notif-admin-msg { font-size: 14px; color: var(--text); line-height: 1.4; }
+        .notif-admin-time { font-size: 12px; color: #9ca3af; margin-top: 3px; }
+
+        /* ── Срочный заказ кнопка ── */
+        .btn-urgent {
+            background: #fff1f1; color: #e63329;
+            border: 1.5px solid #fecaca;
+            padding: 5px 12px; border-radius: 8px;
+            font-size: 12px; font-weight: 700; cursor: pointer;
+            transition: all .2s;
+        }
+        .btn-urgent:hover { background: #e63329; color: white; border-color: #e63329; }
+
+        /* ── Бейджи ролей ── */
+        .role-badge {
+            display: inline-block; padding: 2px 10px;
+            border-radius: 20px; font-size: 12px; font-weight: 700;
+        }
+
+        /* Колонки таблицы услуг */
+        #services-table-container .admin-table { table-layout: fixed; width: 100%; }
+        #services-table-container .admin-table th,
+        #services-table-container .admin-table td {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        /* Ширины колонок: название, описание, цена от, цена до, гарантия, срок, активна, действия */
+        #services-table-container .admin-table th:nth-child(1),
+        #services-table-container .admin-table td:nth-child(1) { width: 15%; }
+        #services-table-container .admin-table th:nth-child(2),
+        #services-table-container .admin-table td:nth-child(2) { width: 22%; }
+        #services-table-container .admin-table th:nth-child(3),
+        #services-table-container .admin-table td:nth-child(3) { width: 9%; }
+        #services-table-container .admin-table th:nth-child(4),
+        #services-table-container .admin-table td:nth-child(4) { width: 9%; }
+        #services-table-container .admin-table th:nth-child(5),
+        #services-table-container .admin-table td:nth-child(5) { width: 9%; }
+        #services-table-container .admin-table th:nth-child(6),
+        #services-table-container .admin-table td:nth-child(6) { width: 11%; }
+        #services-table-container .admin-table th:nth-child(7),
+        #services-table-container .admin-table td:nth-child(7) { width: 8%; }
+        #services-table-container .admin-table th:nth-child(8),
+        #services-table-container .admin-table td:nth-child(8) { width: 13%; white-space: nowrap; }
+        .gantt-wrap { overflow-x: auto; padding-bottom: 0; }
+        .gantt-container { min-width: 640px; position: relative; }
+        .gantt-timeline { position: relative; margin-left: 130px; margin-bottom: 6px; height: 20px; border-bottom: 2px solid var(--gray-light); }
+        .gantt-hour { position: absolute; font-size: 11px; font-weight: 700; color: var(--gray); transform: translateX(-50%); white-space: nowrap; }
+        .gantt-row { display: flex; align-items: center; margin-bottom: 12px; }
+        .gantt-master-label { width: 130px; flex-shrink: 0; font-size: 13px; font-weight: 600; color: var(--text); padding-right: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .gantt-track { flex: 1; height: 52px; background: var(--bg); border-radius: var(--radius-sm); position: relative; overflow: hidden; }
+        .gantt-tick { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--gray-light); pointer-events: none; }
+        .gantt-slot { position: absolute; top: 4px; bottom: 4px; border-radius: 6px; display: flex; align-items: center; padding: 0 6px; overflow: hidden; cursor: default; min-width: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+        .gantt-slot:hover { filter: brightness(1.1); z-index: 10; }
+        .gantt-slot-label { font-size: 11px; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+        .gantt-slot.diagnosis { background: linear-gradient(135deg, #2563eb, #60a5fa); }
+        .gantt-slot.repair    { background: linear-gradient(135deg, #16a34a, #4ade80); }
+        .gantt-slot.urgent    { background: linear-gradient(135deg, #e63329, #f87171); }
+        .gantt-slot.done      { background: linear-gradient(135deg, #9ca3af, #d1d5db); }
+        .gantt-now-line { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--primary); z-index: 20; pointer-events: none; }
+        .gantt-now-line::before { content: "сейчас"; position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 700; color: var(--primary); white-space: nowrap; }
+        .gantt-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--gray-light); }
+        .gantt-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray); }
+        .gantt-legend-color { width: 14px; height: 14px; border-radius: 4px; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="container">
+        <div class="topbar-left"><span class="dot"></span> Работаем 24/7</div>
+        <div class="topbar-right">
+            <a href="contacts.html">Оренбург, Туркестанская, 2А</a>
+            <a href="contacts.html">Оренбург, Салмышская, 66/2</a>
+            <a href="contacts.html">Оренбург, Брестская, 5/2</a>
+        </div>
+    </div>
+</div>
+
+<header>
+    <div class="container">
+        <a href="../index.html" class="logo">
+            <div class="logo-icon">Б</div>
+            <div>
+                <div class="logo-text"><span>Быт</span>Сервис</div>
+                <div class="logo-sub">Ремонт электроники и бытовой техники</div>
+            </div>
+        </a>
+        <nav>
+            <a href="../index.html">Главная</a>
+            <a href="services.html">Услуги</a>
+            <a href="prices.html">Цены</a>
+            <a href="reviews.html">Отзывы</a>
+            <a href="contacts.html">Контакты</a>
+            <a href="#" id="user-cabinet-btn" class="user-icon-link" title="Личный кабинет">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span id="user-cabinet-name" style="display:none; font-size:14px; font-weight:600; margin-left:6px;"></span>
+            </a>
+        </nav>
+        <div class="header-actions">
+            <a href="tel:+73532507030" class="phone-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 5a2 2 0 0 1 1.95-2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.09a16 16 0 0 0 6 6l.9-.9a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                +7 (3532) 50-70-30
+            </a>
+            <button class="btn btn-primary" data-modal="appointment-modal">Записаться</button>
+            <button class="burger"><span></span><span></span><span></span></button>
+        </div>
+    </div>
+</header>
+
+<!-- Экран входа (если не авторизован как админ) -->
+<div id="login-screen" style="display:none; min-height:60vh; align-items:center; justify-content:center; padding:40px 20px;">
+    <div style="background:white; border-radius:20px; padding:40px; width:100%; max-width:380px; box-shadow:var(--shadow-lg);">
+        <h2 style="text-align:center; margin-bottom:8px;">Вход в панель</h2>
+        <p style="text-align:center; color:#6b7280; font-size:14px; margin-bottom:24px;">Только для администраторов</p>
+        <form id="login-form">
+            <div class="form-group">
+                <label style="font-size:13px; font-weight:600; display:block; margin-bottom:6px;">Имя пользователя</label>
+                <input class="form-control" type="text" id="login-username" placeholder="Имя" required>
+            </div>
+            <div class="form-group" style="margin-top:14px;">
+                <label style="font-size:13px; font-weight:600; display:block; margin-bottom:6px;">Пароль</label>
+                <input class="form-control" type="password" id="login-password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:20px;">Войти</button>
+            <p id="login-error" style="color:#e63329; font-size:13px; text-align:center; display:none; margin-top:10px;"></p>
+        </form>
+    </div>
+</div>
+
+<!-- Основная панель -->
+<div id="admin-panel" style="display:none;">
+
+    <div class="page-header">
+        <div class="container">
+            <div style="font-size:13px; color:rgba(255,255,255,0.4); margin-bottom:12px;">
+                <a href="../index.html" style="color:rgba(255,255,255,0.4);">Главная</a> &rarr; Админ-панель
+            </div>
+            <h1>Панель управления</h1>
+            <p>Управление заявками, отзывами и контентом сайта</p>
+        </div>
+    </div>
+
+    <section style="padding:0;">
+        <div class="container">
+            <div class="admin-layout">
+
+                <!-- Сайдбар -->
+                <div class="admin-sidebar-card">
+                    <button class="admin-nav-item active" onclick="switchTab('dashboard')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                        Главная
+                    </button>
+                    <button class="admin-nav-item" onclick="switchTab('orders')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Заявки
+                    </button>
+                    <button class="admin-nav-item" onclick="switchTab('reviews')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        Отзывы
+                    </button>
+                    <button class="admin-nav-item" onclick="switchTab('services')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                        Услуги
+                    </button>
+                    <button class="admin-nav-item" onclick="switchTab('users')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        Пользователи
+                    </button>
+                    <button class="admin-nav-item" onclick="switchTab('schedule')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="12" height="4" rx="1"/><rect x="3" y="16" width="15" height="4" rx="1"/></svg>
+                        Расписание
+                        <span id="nav-warn-dot" style="display:none;margin-left:auto;width:8px;height:8px;background:#e63329;border-radius:50%;flex-shrink:0;"></span>
+                    </button>
+                    <button class="admin-nav-item" onclick="switchTab('notifications')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        Уведомления
+                        <span id="nav-notif-count" style="display:none;margin-left:auto;background:#e63329;color:white;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:700;flex-shrink:0;"></span>
+                    </button>
+                    <div style="border-top:1px solid #f0f0f0; margin:8px 0;"></div>
+                    <a href="cabinet.html" class="admin-nav-item" style="text-decoration:none;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        Личный кабинет
+                    </a>
+                    <button class="admin-nav-item" onclick="logout()" style="color:#e63329;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        Выйти
+                    </button>
+                </div>
+
+                <!-- Контент -->
+                <div class="admin-content">
+
+                    <!-- Главная -->
+                    <div id="tab-dashboard" class="tab-content active">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-card-num" id="stat-orders">—</div>
+                                <div class="stat-card-label">Всего заявок</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card-num" id="stat-new">—</div>
+                                <div class="stat-card-label">Новых заявок</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card-num" id="stat-reviews">—</div>
+                                <div class="stat-card-label">Отзывов на проверке</div>
+                            </div>
+                        </div>
+                        <div class="quick-actions">
+                            <h3>Быстрые действия</h3>
+                            <div class="quick-actions-btns">
+                                <button onclick="switchTab('orders')" class="btn btn-primary">Просмотр заявок</button>
+                                <button onclick="switchTab('reviews')" class="btn btn-outline">Проверить отзывы</button>
+                                <button onclick="switchTab('services')" class="btn btn-outline">Управление услугами</button>
+                                <button onclick="switchTab('users')" class="btn btn-outline">Пользователи</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Заявки -->
+                    <div id="tab-orders" class="tab-content">
+                        <div class="admin-table-wrap">
+                            <div class="admin-table-header">
+                                <h3>Все заявки</h3>
+                                <button onclick="loadOrders()" class="btn btn-sm btn-outline">Обновить</button>
+                            </div>
+                            <div id="orders-table-container"><div class="empty-state">Загрузка...</div></div>
+                        </div>
+                    </div>
+
+                    <!-- Отзывы -->
+                    <div id="tab-reviews" class="tab-content">
+                        <div class="admin-table-wrap">
+                            <div class="admin-table-header">
+                                <h3>Все отзывы</h3>
+                                <button onclick="loadReviewsAdmin()" class="btn btn-sm btn-outline">Обновить</button>
+                            </div>
+                            <div id="reviews-table-container"><div class="empty-state">Загрузка...</div></div>
+                        </div>
+                    </div>
+
+
+                    <!-- Пользователи -->
+                    <div id="tab-users" class="tab-content">
+                        <div class="admin-table-wrap">
+                            <div class="admin-table-header">
+                                <h3>Пользователи</h3>
+                                <button onclick="loadUsersAdmin()" class="btn btn-sm btn-outline">Обновить</button>
+                            </div>
+                            <div id="users-table-container"><div class="empty-state">Загрузка...</div></div>
+                        </div>
+                    </div>
+
+                    <!-- Услуги -->
+                    <div id="tab-services" class="tab-content">
+                        <div class="admin-table-wrap">
+                            <div class="admin-table-header">
+                                <h3>Управление услугами</h3>
+                                <button onclick="openServiceForm()" class="btn btn-primary btn-sm">+ Добавить услугу</button>
+                            </div>
+                            <div id="services-table-container"><div class="empty-state">Загрузка...</div></div>
+
+                        </div>
+                    </div>
+
+                    <!-- Расписание -->
+                    <div id="tab-schedule" class="tab-content">
+                        <div class="admin-table-wrap" style="margin-bottom:20px;">
+                            <div class="admin-table-header">
+                                <h3>Расписание заказов</h3>
+                                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                                    <span style="font-size:12px;color:#6b7280;">
+                                        ✅ Расписание строится автоматически при новых заявках
+                                    </span>
+                                    <button onclick="buildScheduleAdmin()" class="btn btn-primary btn-sm" id="admin-build-btn">
+                                        &#9889; Пересчитать вручную
+                                    </button>
+                                    <button onclick="loadScheduleTab()" class="btn btn-sm btn-outline">Обновить</button>
+                                </div>
+                            </div>
+                            <div id="schedule-orders-container"><div class="empty-state">Загрузка...</div></div>
+                        </div>
+
+                        <!-- Диаграмма Ганта -->
+                        <div class="admin-table-wrap" style="margin-top:20px;">
+                            <div class="admin-table-header">
+                                <h3>Диаграмма Ганта</h3>
+                                <button onclick="loadAdminGantt()" class="btn btn-sm btn-outline">Обновить</button>
+                            </div>
+                            <div style="padding: 16px 20px;">
+                                <div class="gantt-wrap">
+                                    <div class="gantt-container" id="admin-gantt-container"><div class="loading-state">Загрузка...</div></div>
+                                </div>
+                                <div class="gantt-legend">
+                                    <div class="gantt-legend-item"><div class="gantt-legend-color" style="background:linear-gradient(135deg,#2563eb,#60a5fa)"></div>Диагностика</div>
+                                    <div class="gantt-legend-item"><div class="gantt-legend-color" style="background:linear-gradient(135deg,#16a34a,#4ade80)"></div>Ремонт</div>
+                                    <div class="gantt-legend-item"><div class="gantt-legend-color" style="background:linear-gradient(135deg,#e63329,#f87171)"></div>Срочный</div>
+                                    <div class="gantt-legend-item"><div class="gantt-legend-color" style="background:linear-gradient(135deg,#9ca3af,#d1d5db)"></div>Выполнен</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Уведомления -->
+                    <div id="tab-notifications" class="tab-content">
+                        <div class="admin-table-wrap">
+                            <div class="admin-table-header">
+                                <h3>Уведомления</h3>
+                                <div style="display:flex;gap:10px;">
+                                    <button onclick="markAllReadAdmin()" class="btn btn-sm btn-outline">Прочитать все</button>
+                                    <button onclick="loadNotificationsAdmin()" class="btn btn-sm btn-outline">Обновить</button>
+                                </div>
+                            </div>
+                            <div id="notif-admin-container"><div class="empty-state">Загрузка...</div></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="logo"><div class="logo-icon">Б</div><div><div class="logo-text" style="color:white;"><span>Быт</span>Сервис</div></div></div>
+                <p>Профессиональный ремонт электроники и бытовой техники в Оренбурге. Работаем с 2016 года.</p>
+            </div>
+           <div class="footer-col">
+    <h4>Услуги</h4>
+    <ul>
+        <li><a href="services.html">Ремонт смартфонов и планшетов</a></li>
+        <li><a href="services.html">Ремонт ноутбуков и компьютеров</a></li>
+        <li><a href="services.html">Ремонт телевизоров и мониторов</a></li>
+        <li><a href="services.html">Ремонт бытовой техники</a></li>
+        <li><a href="services.html">Ремонт садовой техники</a></li>
+        <li><a href="services.html">Восстановление данных</a></li>
+    </ul>
+</div>
+            <div class="footer-col"><h4>Компания</h4><ul>
+                <li><a href="reviews.html">Отзывы</a></li>
+                <li><a href="prices.html">Цены</a></li>
+                <li><a href="contacts.html">Контакты</a></li>
+            </ul></div>
+           <div class="footer-col">
+                <h4>Контакты</h4>
+                <ul>
+                    <li><a href="tel:+73532507030">+7 (3532) 50-70-30</a></li>
+                    <li><a href="contacts.html">Туркестанская, 2А</a></li>
+                    <li><a href="contacts.html">Салмышская, 66/2</a></li>
+                    <li><a href="contacts.html">Брестская, 5/2</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 БытСервис. Все права защищены.</span>
+            <span>Оренбург, работаем 24/7</span>
+        </div>
+    </div>
+</footer>
+
+
+<div class="modal-overlay" id="appointment-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Онлайн-запись на ремонт</h3>
+            <button class="modal-close">&#10005;</button>
+        </div>
+                <form class="modal-form" id="appointment-form">
+            <!-- Шаг 1: Контакты -->
+            <div class="form-section-label">Контактная информация</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Ваше имя *</label>
+                    <input class="form-control" type="text" name="client_name" placeholder="Иван Иванов" required>
+                </div>
+                <div class="form-group">
+                    <label>Телефон *</label>
+                    <input class="form-control" type="tel" name="phone" placeholder="+7 (___) ___-__-__" required>
+                </div>
+            </div>
+
+            <!-- Шаг 2: Устройство -->
+            <div class="form-section-label">Устройство</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Тип устройства *</label>
+                    <select class="form-control" name="device_type" required>
+                        <option value="">Выберите тип</option>
+                        <option>Смартфон</option>
+                        <option>Планшет</option>
+                        <option>Ноутбук</option>
+                        <option>Компьютер</option>
+                        <option>Монитор</option>
+                        <option>Телевизор</option>
+                        <option>Техника Apple</option>
+                        <option>Принтер</option>
+                        <option>МФУ / Копир</option>
+                        <option>Фотоаппарат</option>
+                        <option>Игровая консоль</option>
+                        <option>Микроволновка</option>
+                        <option>Кофемашина</option>
+                        <option>Стиральная машина</option>
+                        <option>Холодильник</option>
+                        <option>Кондиционер</option>
+                        <option>Робот-пылесос</option>
+                        <option>Электросамокат</option>
+                        <option>Электроинструмент</option>
+                        <option>Снегоочиститель</option>
+                        <option>Мотокультиватор</option>
+                        <option>Мотопомпа</option>
+                        <option>Бензопила / Электропила</option>
+                        <option>Триммер</option>
+                        <option>Генератор</option>
+                        <option>Заправка картриджей</option>
+                        <option>Восстановление данных</option>
+                        <option>Онлайн-касса</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Модель устройства</label>
+                    <input class="form-control" type="text" name="device_model" placeholder="iPhone 14, Samsung Galaxy S23...">
+                </div>
+            </div>
+
+            <!-- Шаг 3: Услуга и проблема -->
+            <div class="form-section-label">Неисправность</div>
+            <div class="form-group">
+                <label>Нужная услуга</label>
+                <input class="form-control" type="text" name="service_type" placeholder="Замена экрана, чистка от пыли...">
+            </div>
+            <div class="form-group">
+                <label>Опишите проблему подробнее</label>
+                <textarea class="form-control" name="problem" rows="3" placeholder="Треснул экран после падения, не реагирует на касание в нижней части..."></textarea>
+            </div>
+
+            <!-- Шаг 4: Доп. информация -->
+            <div class="form-section-label">Дополнительно</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Срочность</label>
+                    <select class="form-control" name="urgency">
+                        <option value="normal">Обычная (1–3 дня)</option>
+                        <option value="urgent">Срочно (день в день)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Устройство на гарантии?</label>
+                    <select class="form-control" name="has_warranty">
+                        <option value="0">Нет / не знаю</option>
+                        <option value="1">Да, есть чек/гарантия</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Удобная дата *</label>
+                    <input class="form-control" type="date" name="preferred_date" required>
+                </div>
+                <div class="form-group">
+                    <label>Удобное время *</label>
+                    <select class="form-control" name="preferred_time" required>
+                        <option value="">Выберите время</option>
+                        <option>09:00</option><option>10:00</option><option>11:00</option>
+                        <option>12:00</option><option>13:00</option><option>14:00</option>
+                        <option>15:00</option><option>16:00</option><option>17:00</option>
+                        <option>18:00</option><option>19:00</option><option>20:00</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:4px;">Отправить заявку</button>
+        </form>
+
+    </div>
+</div>
+<script src="../js/main.js"></script>
+<script>
+const API_ADMIN = 'http://localhost:4000/api';
+
+const statusColors = { new: '#3b82f6', in_progress: '#f59e0b', done: '#22c55e', cancelled: '#9ca3af' };
+
+// Глобальные функции для onclick
+function switchTab(name) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.admin-nav-item').forEach(a => a.classList.remove('active'));
+    document.getElementById(`tab-${name}`).classList.add('active');
+    document.querySelectorAll('.admin-nav-item').forEach(btn => {
+        if (btn.getAttribute('onclick') === `switchTab('${name}')`) btn.classList.add('active');
+    });
+    if (name === 'orders') loadOrders();
+    if (name === 'reviews') loadReviewsAdmin();
+    if (name === 'dashboard') loadStats();
+    if (name === 'services') loadServicesAdmin();
+    if (name === 'users') loadUsersAdmin();
+    if (name === 'schedule') { loadScheduleTab(); loadAdminGantt(); }
+    if (name === 'notifications') loadNotificationsAdmin();
+}
+
+function logout() {
+    localStorage.removeItem('currentUser');
+    window.location.href = '../index.html';
+}
+
+async function updateOrderStatus(id, status) {
+    try {
+        await fetch(`${API_ADMIN}/orders/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        showToast('Статус заявки обновлён');
+    } catch {
+        showToast('Ошибка обновления', 'error');
+    }
+}
+
+async function updateReviewStatus(id, is_approved) {
+    try {
+        await fetch(`${API_ADMIN}/reviews/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_approved: parseInt(is_approved) })
+        });
+        showToast('Статус отзыва обновлён');
+    } catch {
+        showToast('Ошибка обновления', 'error');
+    }
+}
+
+// Инициализация
+(function() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+
+    if (currentUser && currentUser.role === 'admin') {
+        document.getElementById('admin-panel').style.display = 'block';
+        loadStats();
+    } else {
+        document.getElementById('login-screen').style.display = 'flex';
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('login-username').value;
+        const password = document.getElementById('login-password').value;
+        try {
+            const res = await fetch(`${API_ADMIN}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, password })
+            });
+            const data = await res.json();
+            if (data.success && data.user.role === 'admin') {
+                localStorage.setItem('currentUser', JSON.stringify(data.user));
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                loadStats();
+            } else {
+                const err = document.getElementById('login-error');
+                err.style.display = 'block';
+                err.textContent = data.success ? 'Нет прав администратора' : (data.message || 'Неверные данные');
+            }
+        } catch {
+            const err = document.getElementById('login-error');
+            err.style.display = 'block';
+            err.textContent = 'Ошибка соединения с сервером';
+        }
+    });
+})();
+
+async function loadStats() {
+    try {
+        const [ordersRes, reviewsRes] = await Promise.all([
+            fetch(`${API_ADMIN}/orders?role=admin`),
+            fetch(`${API_ADMIN}/reviews/all`)
+        ]);
+        const orders = await ordersRes.json();
+        const reviews = await reviewsRes.json();
+        document.getElementById('stat-orders').textContent = orders.success ? orders.data.length : '—';
+        document.getElementById('stat-new').textContent = orders.success ? orders.data.filter(o => o.status === 'new').length : '—';
+        document.getElementById('stat-reviews').textContent = reviews.success ? reviews.data.filter(r => !r.is_approved).length : '—';
+    } catch {
+        ['stat-orders','stat-new','stat-reviews'].forEach(id => document.getElementById(id).textContent = '—');
+    }
+    // Счётчик уведомлений в сайдбаре
+    try {
+        const nRes = await fetch(`${API_ADMIN}/notifications`);
+        const nData = await nRes.json();
+        if (nData.success) {
+            const unread = nData.data.filter(n => !n.is_read).length;
+            const countEl = document.getElementById('nav-notif-count');
+            const dotEl   = document.getElementById('nav-warn-dot');
+            if (countEl) { countEl.style.display = unread > 0 ? 'inline' : 'none'; countEl.textContent = unread; }
+            if (dotEl) { dotEl.style.display = nData.data.some(n => n.type === 'deadline_risk' && !n.is_read) ? 'inline-block' : 'none'; }
+        }
+    } catch {}
+}
+
+async function loadOrders() {
+    const container = document.getElementById('orders-table-container');
+    container.innerHTML = '<div class="empty-state">Загрузка...</div>';
+    try {
+        const res = await fetch(`${API_ADMIN}/orders?role=admin`);
+        const data = await res.json();
+        if (!data.success || !data.data.length) {
+            container.innerHTML = '<div class="empty-state">Заявок пока нет</div>';
+            return;
+        }
+
+        const statusLabels = { new: 'Новая', in_progress: 'В работе', done: 'Готово', cancelled: 'Отменена' };
+        const urgencyLabel = { normal: 'Обычная', urgent: '🔥 Срочно' };
+
+        window.__ordersData = {};
+        data.data.forEach(o => { window.__ordersData[o.id] = o; });
+        container.innerHTML = '<div class="orders-cards">' + data.data.map(o => `
+            <div class="order-card" id="order-${o.id}">
+                <div class="order-card-head">
+                    <div class="order-card-id-block">
+                        <span class="order-card-id">#${o.id}</span>
+                        <span class="order-card-date">${new Date(o.created_at).toLocaleDateString('ru-RU', {day:'2-digit',month:'2-digit',year:'numeric'})}</span>
+                    </div>
+                    <select class="status-select" onchange="updateOrderStatus(${o.id}, this.value); this.style.borderColor=statusColors[this.value]||'#e5e7eb'; this.style.color=statusColors[this.value]||'inherit';" style="border-color:${statusColors[o.status]||'#e5e7eb'}; color:${statusColors[o.status]||'inherit'}">
+                        <option value="new" ${o.status==='new'?'selected':''}>Новая</option>
+                        <option value="in_progress" ${o.status==='in_progress'?'selected':''}>В работе</option>
+                        <option value="done" ${o.status==='done'?'selected':''}>Готово</option>
+                        <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Отменена</option>
+                    </select>
+                </div>
+
+                <div class="order-card-body">
+                    <div class="order-card-col">
+                        <div class="order-field">
+                            <span class="order-field-label">Клиент</span>
+                            <span class="order-field-val"><strong>${o.client_name}</strong></span>
+                        </div>
+                        <div class="order-field">
+                            <span class="order-field-label">Телефон</span>
+                            <span class="order-field-val"><a href="tel:${o.phone}" style="color:var(--primary); font-weight:600;">${o.phone}</a></span>
+                        </div>
+                        <div class="order-field">
+                            <span class="order-field-label">Визит</span>
+                            <span class="order-field-val">${o.preferred_date ? new Date(o.preferred_date).toLocaleDateString('ru-RU') + (o.preferred_time ? ' в ' + o.preferred_time : '') : '—'}</span>
+                        </div>
+                    </div>
+
+                    <div class="order-card-col">
+                        <div class="order-field">
+                            <span class="order-field-label">Тип устройства</span>
+                            <span class="order-field-val">${o.device_type || '—'}</span>
+                        </div>
+                        <div class="order-field">
+                            <span class="order-field-label">Модель</span>
+                            <span class="order-field-val">${o.device_model || '—'}</span>
+                        </div>
+                        <div class="order-field">
+                            <span class="order-field-label">Нужная услуга</span>
+                            <span class="order-field-val">${o.service_type || '—'}</span>
+                        </div>
+                    </div>
+
+                    <div class="order-card-col">
+                        <div class="order-field">
+                            <span class="order-field-label">Срочность</span>
+                            <span class="order-field-val ${o.urgency==='urgent' ? 'order-urgent' : ''}">${urgencyLabel[o.urgency] || 'Обычная'}</span>
+                        </div>
+                        <div class="order-field">
+                            <span class="order-field-label">Гарантия/чек</span>
+                            <span class="order-field-val">${o.has_warranty ? '✅ Есть' : 'Нет'}</span>
+                        </div>
+                    </div>
+                </div>
+
+                ${o.problem ? `<div class="order-card-problem"><span class="order-field-label">Описание проблемы:</span> ${o.problem}</div>` : ''}
+                <div style="padding:12px 0 0; display:flex; justify-content:flex-end;">
+                    <button class="btn-print-act" data-order-id="${o.id}" style="background:#f0fdf4; color:#16a34a; border:1.5px solid #bbf7d0; padding:6px 14px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;">📄 Акт приёма</button>
+                </div>
+            </div>
+        `).join('') + '</div>';
+    } catch {
+        container.innerHTML = '<div class="empty-state">Ошибка загрузки данных</div>';
+    }
+
+    // Делегирование событий для кнопок акта приёма
+    container.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-print-act');
+        if (!btn) return;
+        const orderId = parseInt(btn.dataset.orderId);
+        const order = window.__ordersData && window.__ordersData[orderId];
+        if (order) printAct(order);
+    });
+}
+
+async function loadReviewsAdmin() {
+    const container = document.getElementById('reviews-table-container');
+    container.innerHTML = '<div class="empty-state">Загрузка...</div>';
+    try {
+        const res = await fetch(`${API_ADMIN}/reviews/all`);
+        const data = await res.json();
+        if (!data.success || !data.data.length) {
+            container.innerHTML = '<div class="empty-state">Отзывов пока нет</div>';
+            return;
+        }
+        container.innerHTML = `
+            <table class="admin-table">
+                <thead><tr><th>№</th><th>Клиент</th><th>Оценка</th><th>Отзыв</th><th>Устройство</th><th>Дата</th><th>Статус</th></tr></thead>
+                <tbody>
+                    ${data.data.map(r => `
+                        <tr>
+                            <td>#${r.id}</td>
+                            <td><strong>${r.client_name}</strong></td>
+                            <td style="color:#f59e0b; font-size:16px;">${'★'.repeat(r.rating)}</td>
+                            <td style="max-width:250px; font-size:13px;">${r.text}</td>
+                            <td style="color:#6b7280; font-size:13px;">${r.device_type || '—'}</td>
+                            <td style="white-space:nowrap; color:#6b7280; font-size:13px;">${new Date(r.created_at).toLocaleDateString('ru-RU')}</td>
+                            <td>
+                                ${r.is_approved ? '<span style="font-size:11px;color:#6b7280;display:block;margin-bottom:4px;">' + (r.flagged ? '⚠ Вручную' : '✓ Авто') + '</span>' : ''}
+                                <select class="status-select" onchange="updateReviewStatus(${r.id}, this.value)">
+                                    <option value="0" ${!r.is_approved?'selected':''}>На проверке</option>
+                                    <option value="1" ${r.is_approved?'selected':''}>Одобрен</option>
+                                </select>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch {
+        container.innerHTML = '<div class="empty-state">Ошибка загрузки данных</div>';
+    }
+}
+
+
+// ============================================
+// УПРАВЛЕНИЕ УСЛУГАМИ
+// ============================================
+
+const CATEGORIES = ['Ремонт телефонов','Ремонт ноутбуков','Ремонт телевизоров','Ремонт холодильников','Ремонт кондиционеров'];
+
+async function loadServicesAdmin() {
+    const container = document.getElementById('services-table-container');
+    container.innerHTML = '<div class="empty-state">Загрузка...</div>';
+    try {
+        const res = await fetch(`${API_ADMIN}/admin/services`);
+        const data = await res.json();
+        if (!data.success || !data.data.length) {
+            container.innerHTML = '<div class="empty-state">Услуг пока нет</div>';
+            return;
+        }
+
+        // Группируем по категориям
+        const grouped = data.data.reduce((acc, s) => {
+            if (!acc[s.category]) acc[s.category] = [];
+            acc[s.category].push(s);
+            return acc;
+        }, {});
+
+        let html = '';
+        for (const [cat, items] of Object.entries(grouped)) {
+            html += `<div class="services-admin-category">
+                <div class="services-admin-cat-header">
+                    <span>${cat}</span>
+                    <span style="font-size:12px; color:var(--gray);">${items.length} услуг</span>
+                </div>
+                <table class="admin-table">
+                    <thead><tr>
+                        <th>Название</th>
+                        <th>Описание</th>
+                        <th>Цена от</th>
+                        <th>Цена до</th>
+                        <th>Гарантия</th>
+                        <th>Срок</th>
+                        <th>Активна</th>
+                        <th>Действия</th>
+                    </tr></thead>
+                    <tbody>
+                        ${items.map(s => `
+                        <tr>
+                            <td><strong>${s.name}</strong></td>
+                            <td style="max-width:200px; font-size:12px; color:var(--gray);">
+                                ${s.description ? s.description.substring(0, 80) + (s.description.length > 80 ? '…' : '') : '<em>Нет описания</em>'}
+                            </td>
+                            <td><strong style="color:var(--primary);">${Number(s.price_from).toLocaleString()} ₽</strong></td>
+                            <td>${s.price_to ? Number(s.price_to).toLocaleString() + ' ₽' : '—'}</td>
+                            <td>${s.warranty || '—'}</td>
+                            <td>${s.duration || '—'}</td>
+                            <td>
+                                <span class="svc-status-badge ${s.is_active ? 'active' : 'inactive'}">
+                                    ${s.is_active ? 'Да' : 'Нет'}
+                                </span>
+                            </td>
+                            <td style="white-space:nowrap;">
+                                <button class="btn-icon-edit" onclick='openServiceForm(${JSON.stringify(s)})' title="Редактировать">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </button>
+                                <button class="btn-icon-delete" onclick="deleteService(${s.id}, '${s.name.replace(/'/g,"\'")}');" title="Удалить">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                                </button>
+                            </td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+        }
+        container.innerHTML = html;
+    } catch(e) {
+        container.innerHTML = '<div class="empty-state">Ошибка загрузки</div>';
+    }
+}
+
+function openServiceForm(service = null) {
+    const old = document.getElementById('service-edit-modal');
+    if (old) old.remove();
+
+    const isEdit = !!service;
+    const catOptions = CATEGORIES.map(c =>
+        `<option value="${c}" ${service && service.category === c ? 'selected' : ''}>${c}</option>`
+    ).join('');
+
+    const modal = document.createElement('div');
+    modal.id = 'service-edit-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    modal.innerHTML = `
+        <div style="background:white;border-radius:20px;padding:36px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+                <h3 style="font-size:18px;">${isEdit ? 'Редактировать услугу' : 'Новая услуга'}</h3>
+                <button onclick="document.getElementById('service-edit-modal').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#9ca3af;">✕</button>
+            </div>
+            <form id="service-edit-form" style="display:flex;flex-direction:column;gap:14px;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Категория *</label>
+                        <select class="form-control" name="category" required>${catOptions}</select>
+                    </div>
+                    <div class="form-group">
+                        <label>Активна</label>
+                        <select class="form-control" name="is_active">
+                            <option value="1" ${!service || service.is_active ? 'selected' : ''}>Да</option>
+                            <option value="0" ${service && !service.is_active ? 'selected' : ''}>Нет</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Название услуги *</label>
+                    <input class="form-control" name="name" type="text" value="${service ? service.name : ''}" placeholder="Замена экрана" required>
+                </div>
+                <div class="form-group">
+                    <label>Описание (показывается в модальном окне)</label>
+                    <textarea class="form-control" name="description" rows="4" placeholder="Подробное описание процедуры...">${service && service.description ? service.description : ''}</textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Цена от (₽) *</label>
+                        <input class="form-control" name="price_from" type="number" value="${service ? service.price_from : ''}" placeholder="1500" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Цена до (₽)</label>
+                        <input class="form-control" name="price_to" type="number" value="${service && service.price_to ? service.price_to : ''}" placeholder="8000">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Гарантия</label>
+                        <select class="form-control" name="warranty">
+                            <option value="">— не указана —</option>
+                            ${['1 месяц','3 месяца','6 месяцев','1 год','2 года'].map(v =>
+                                `<option value="${v}" ${service && service.warranty === v ? 'selected' : ''}>${v}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Срок ремонта</label>
+                        <select class="form-control" name="duration">
+                            <option value="">— не указан —</option>
+                            ${['30 минут','30–60 минут','1 час','1–2 часа','1–3 часа','2–4 часа','3–5 часов','1 день','1–2 дня','2–3 дня','3–5 дней'].map(v =>
+                                `<option value="${v}" ${service && service.duration === v ? 'selected' : ''}>${v}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:8px;">
+                    <button type="submit" class="btn btn-primary" style="flex:1;">
+                        ${isEdit ? 'Сохранить изменения' : 'Добавить услугу'}
+                    </button>
+                    <button type="button" onclick="document.getElementById('service-edit-modal').remove()" class="btn" style="background:#f3f4f6;">
+                        Отмена
+                    </button>
+                </div>
+            </form>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    // Закрываем только если mousedown тоже был на оверлее (не на контенте)
+    let mouseDownOnBackdrop = false;
+    modal.addEventListener('mousedown', e => { mouseDownOnBackdrop = e.target === modal; });
+    modal.addEventListener('click', e => { if (e.target === modal && mouseDownOnBackdrop) modal.remove(); });
+
+    document.getElementById('service-edit-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const payload = {
+            category: form.category.value,
+            name: form.name.value,
+            description: form.description.value,
+            price_from: parseInt(form.price_from.value),
+            price_to: form.price_to.value ? parseInt(form.price_to.value) : null,
+            warranty: form.warranty.value || null,
+            duration: form.duration.value || null,
+            is_active: parseInt(form.is_active.value)
+        };
+        const btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Сохраняем...';
+        try {
+            const url = isEdit ? `${API_ADMIN}/admin/services/${service.id}` : `${API_ADMIN}/admin/services`;
+            const res = await fetch(url, {
+                method: isEdit ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            if (result.success) {
+                showToast(result.message);
+                modal.remove();
+                loadServicesAdmin();
+            } else {
+                showToast(result.message || 'Ошибка', 'error');
+                btn.disabled = false;
+                btn.textContent = isEdit ? 'Сохранить изменения' : 'Добавить услугу';
+            }
+        } catch {
+            showToast('Ошибка соединения', 'error');
+            btn.disabled = false;
+        }
+    });
+}
+
+async function deleteService(id, name) {
+    if (!confirm(`Удалить услугу "${name}"? Это действие нельзя отменить.`)) return;
+    try {
+        const res = await fetch(`${API_ADMIN}/admin/services/${id}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (result.success) {
+            showToast('Услуга удалена');
+            loadServicesAdmin();
+        } else {
+            showToast(result.message || 'Ошибка', 'error');
+        }
+    } catch {
+        showToast('Ошибка соединения', 'error');
+    }
+}
+
+
+// ============================================
+// УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ
+// ============================================
+
+async function loadUsersAdmin() {
+    const container = document.getElementById('users-table-container');
+    container.innerHTML = '<div class="empty-state">Загрузка...</div>';
+    try {
+        const res = await fetch(`${API_ADMIN}/admin/users`);
+        const data = await res.json();
+        if (!data.success || !data.data.length) {
+            container.innerHTML = '<div class="empty-state">Пользователей нет</div>';
+            return;
+        }
+
+        const roleLabels = { admin: 'Админ', user: 'Пользователь', master: 'Мастер', director: 'Директор' };
+        const roleColors = { admin: '#7c3aed', user: '#2563eb', master: '#059669', director: '#d97706' };
+
+        container.innerHTML = `
+            <table class="admin-table">
+                <thead><tr>
+                    <th>ID</th>
+                    <th>Имя</th>
+                    <th>Телефон</th>
+                    <th>Роль</th>
+                    <th>Дата регистрации</th>
+                    <th>Действия</th>
+                </tr></thead>
+                <tbody>
+                    ${data.data.map(u => `
+                    <tr>
+                        <td style="color:var(--gray); font-size:13px;">#${u.id}</td>
+                        <td><strong>${u.name}</strong></td>
+                        <td><a href="tel:${u.phone}" style="color:var(--primary);">${u.phone}</a></td>
+                        <td>
+                            <span style="display:inline-block; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700;
+                                background:${(roleColors[u.role]||'#6b7280')}18; color:${roleColors[u.role]||'#6b7280'};">
+                                ${roleLabels[u.role] || u.role}
+                            </span>
+                        </td>
+                        <td style="color:var(--gray); font-size:13px;">${new Date(u.created_at).toLocaleDateString('ru-RU', {day:'2-digit',month:'2-digit',year:'numeric'})}</td>
+                        <td style="white-space:nowrap;">
+                            <button class="btn-icon-edit" onclick='openUserForm(${JSON.stringify(u)})' title="Редактировать">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </button>
+                            <button class="btn-icon-delete" onclick="deleteUser(${u.id}, '${u.name.replace(/'/g,"\'")}');" title="Удалить">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                            </button>
+                        </td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch(e) {
+        container.innerHTML = '<div class="empty-state">Ошибка загрузки</div>';
+    }
+}
+
+function openUserForm(user) {
+    const old = document.getElementById('user-edit-modal');
+    if (old) old.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'user-edit-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    modal.innerHTML = `
+        <div style="background:white;border-radius:20px;padding:36px;width:100%;max-width:480px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+                <h3 style="font-size:18px;">Редактировать пользователя</h3>
+                <button onclick="document.getElementById('user-edit-modal').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#9ca3af;">✕</button>
+            </div>
+            <form id="user-edit-form" style="display:flex;flex-direction:column;gap:14px;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Имя *</label>
+                        <input class="form-control" name="name" type="text" value="${user.name}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Телефон *</label>
+                        <input class="form-control" name="phone" type="tel" value="${user.phone}" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Роль</label>
+                    <select class="form-control" name="role">
+                        <option value="user" ${user.role === 'user' ? 'selected' : ''}>Пользователь</option>
+                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Администратор</option>
+                        <option value="master"   ${user.role === 'master'   ? 'selected' : ''}>Мастер</option>
+                        <option value="director" ${user.role === 'director' ? 'selected' : ''}>Директор</option>
+                    </select>
+                </div>
+
+                <div style="border-top:1px solid #f0f0f0; padding-top:16px; margin-top:4px;">
+                    <div style="font-size:13px; font-weight:700; color:var(--gray); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;">Сбросить пароль</div>
+                    <div class="form-group">
+                        <label>Новый пароль</label>
+                        <input class="form-control" name="new_password" type="password" placeholder="Минимум 6 символов">
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:10px;margin-top:8px;">
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Сохранить</button>
+                    <button type="button" onclick="document.getElementById('user-edit-modal').remove()" class="btn" style="background:#f3f4f6;">Отмена</button>
+                </div>
+            </form>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    let mouseDownOnBackdrop = false;
+    modal.addEventListener('mousedown', e => { mouseDownOnBackdrop = e.target === modal; });
+    modal.addEventListener('click', e => { if (e.target === modal && mouseDownOnBackdrop) modal.remove(); });
+
+    document.getElementById('user-edit-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Сохраняем...';
+
+        try {
+            // Обновляем данные
+            const res = await fetch(`${API_ADMIN}/admin/users/${user.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: form.name.value, phone: form.phone.value, role: form.role.value })
+            });
+            const result = await res.json();
+            if (!result.success) {
+                showToast(result.message || 'Ошибка', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Сохранить';
+                return;
+            }
+
+            // Сбрасываем пароль если указан
+            const newPass = form.new_password.value;
+            if (newPass) {
+                const passRes = await fetch(`${API_ADMIN}/admin/users/${user.id}/reset-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ new_password: newPass })
+                });
+                const passResult = await passRes.json();
+                if (!passResult.success) {
+                    showToast(passResult.message || 'Ошибка смены пароля', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Сохранить';
+                    return;
+                }
+            }
+
+            showToast('Пользователь обновлён');
+            modal.remove();
+            loadUsersAdmin();
+        } catch {
+            showToast('Ошибка соединения', 'error');
+            btn.disabled = false;
+            btn.textContent = 'Сохранить';
+        }
+    });
+}
+
+
+// ============================================
+// РАСПИСАНИЕ — вкладка администратора
+// ============================================
+
+let mastersCache   = [];
+let equipmentCache = [];
+
+async function loadScheduleTab() {
+    const container = document.getElementById('schedule-orders-container');
+    container.innerHTML = '<div class="empty-state">Загрузка...</div>';
+
+    // Загружаем мастеров и оборудование для селектов
+    try {
+        const [mRes, eRes, oRes] = await Promise.all([
+            fetch(`${API_ADMIN}/masters`),
+            fetch(`${API_ADMIN}/equipment`),
+            fetch(`${API_ADMIN}/orders?role=admin`),
+        ]);
+        const [mData, eData, oData] = await Promise.all([mRes.json(), eRes.json(), oRes.json()]);
+
+        mastersCache   = mData.success   ? mData.data   : [];
+        equipmentCache = eData.success   ? eData.data   : [];
+
+        if (!oData.success || !oData.data.length) {
+            container.innerHTML = '<div class="empty-state">Заявок нет</div>';
+            return;
+        }
+
+        // Показываем только активные заказы
+        const active = oData.data.filter(o => ['new','in_progress'].includes(o.status));
+        if (!active.length) {
+            container.innerHTML = '<div class="empty-state">Нет активных заявок для планирования</div>';
+            return;
+        }
+
+        const masterOptions = mastersCache.length
+            ? mastersCache.map(m => `<option value="${m.id}">${m.name}</option>`).join('')
+            : '<option value="">— нет мастеров —</option>';
+
+        const equipOptions = '<option value="">— не требуется —</option>' +
+            equipmentCache.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+
+        container.innerHTML = active.map(o => `
+            <div class="assign-card">
+                <div class="assign-card-head" onclick="toggleAssign(${o.id})">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <span class="assign-card-id">#${o.id}</span>
+                        <span class="assign-card-title">${o.client_name} — ${o.device_type}${o.device_model ? ' · ' + o.device_model : ''}</span>
+                        ${o.urgency === 'urgent' ? '<span style="background:#fff1f1;color:#e63329;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">🔥 Срочно</span>' : ''}
+                        ${o.master_id ? '<span style="background:#dcfce7;color:#16a34a;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">✓ Назначен</span>' : ''}
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="arrow-${o.id}" style="transition:transform .2s;flex-shrink:0;">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </div>
+                <div class="assign-card-body" id="assign-body-${o.id}">
+                    <div class="assign-form-grid">
+                        <div class="assign-field">
+                            <label>Мастер</label>
+                            <select class="form-control" id="master-sel-${o.id}">
+                                <option value="">— не назначен —</option>
+                                ${masterOptions}
+                            </select>
+                        </div>
+                        <div class="assign-field">
+                            <label>Оборудование</label>
+                            <select class="form-control" id="equip-sel-${o.id}">
+                                ${equipOptions}
+                            </select>
+                        </div>
+                        <div class="assign-field">
+                            <label>Время диагностики (мин)</label>
+                            <input class="form-control" type="number" id="diag-${o.id}"
+                                value="${o.diagnosis_time || 30}" min="5" max="480">
+                        </div>
+                        <div class="assign-field">
+                            <label>Время ремонта (мин)</label>
+                            <input class="form-control" type="number" id="repair-${o.id}"
+                                value="${o.repair_time || 60}" min="5" max="480">
+                        </div>
+                        <div class="assign-field">
+                            <label>Дедлайн</label>
+                            <input class="form-control" type="datetime-local" id="deadline-${o.id}"
+                                value="${o.deadline ? new Date(o.deadline).toISOString().slice(0,16) : ''}">
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button class="btn btn-primary btn-sm"
+                            onclick="assignOrder(${o.id})">Сохранить</button>
+                        ${o.urgency !== 'urgent' ? `
+                        <button class="btn-urgent"
+                            onclick="makeUrgent(${o.id})">🔥 Сделать срочным</button>` : ''}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        // Устанавливаем текущие значения
+        for (const o of active) {
+            if (o.master_id) {
+                const sel = document.getElementById(`master-sel-${o.id}`);
+                if (sel) sel.value = o.master_id;
+            }
+            if (o.equipment_id) {
+                const sel = document.getElementById(`equip-sel-${o.id}`);
+                if (sel) sel.value = o.equipment_id;
+            }
+        }
+
+    } catch (e) {
+        container.innerHTML = '<div class="empty-state">Ошибка загрузки</div>';
+        console.error(e);
+    }
+}
+
+function toggleAssign(id) {
+    const body  = document.getElementById(`assign-body-${id}`);
+    const arrow = document.getElementById(`arrow-${id}`);
+    const open  = body.classList.toggle('open');
+    if (arrow) arrow.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+async function assignOrder(id) {
+    const masterId    = document.getElementById(`master-sel-${id}`).value;
+    const equipId     = document.getElementById(`equip-sel-${id}`).value;
+    const diagTime    = document.getElementById(`diag-${id}`).value;
+    const repairTime  = document.getElementById(`repair-${id}`).value;
+    const deadline    = document.getElementById(`deadline-${id}`).value;
+
+    try {
+        const res  = await fetch(`${API_ADMIN}/orders/${id}/assign`, {
+            method:  'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                master_id:      masterId    || null,
+                equipment_id:   equipId     || null,
+                diagnosis_time: parseInt(diagTime)   || 30,
+                repair_time:    parseInt(repairTime) || 60,
+                deadline:       deadline    || null,
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('Заказ #' + id + ' обновлён');
+            loadScheduleTab();
+        } else {
+            showToast(data.message || 'Ошибка', 'error');
+        }
+    } catch {
+        showToast('Ошибка соединения', 'error');
+    }
+}
+
+async function makeUrgent(id) {
+    if (!confirm(`Сделать заказ #${id} срочным? Он будет перемещён в начало очереди.`)) return;
+    try {
+        const res  = await fetch(`${API_ADMIN}/schedule/urgent`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_id: id })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(`🔥 Заказ #${id} помечен срочным и перепланирован`);
+            loadScheduleTab();
+            loadStats();
+        } else {
+            showToast(data.message || 'Ошибка', 'error');
+        }
+    } catch {
+        showToast('Ошибка соединения', 'error');
+    }
+}
+
+async function buildScheduleAdmin() {
+    const btn = document.getElementById('admin-build-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Рассчитываем...';
+    try {
+        const res  = await fetch(`${API_ADMIN}/schedule/build`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            const warnText = data.warnings?.length ? ` · ⚠️ ${data.warnings.length} рисков` : '';
+            showToast(`✓ Расписание построено (${data.algorithm})${warnText}`);
+            loadScheduleTab();
+            loadStats();
+        } else {
+            showToast(data.message || 'Ошибка', 'error');
+        }
+    } catch {
+        showToast('Ошибка соединения', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '⚡ Пересчитать расписание';
+    }
+}
+
+// ============================================
+// УВЕДОМЛЕНИЯ — вкладка администратора
+// ============================================
+
+async function loadNotificationsAdmin() {
+    const container = document.getElementById('notif-admin-container');
+    container.innerHTML = '<div class="empty-state">Загрузка...</div>';
+    try {
+        const res  = await fetch(`${API_ADMIN}/notifications`);
+        const data = await res.json();
+        if (!data.success || !data.data.length) {
+            container.innerHTML = '<div class="empty-state">Уведомлений нет</div>';
+            return;
+        }
+        const icons = {
+            order_ready:   '✅',
+            deadline_risk: '⚠️',
+            urgent_added:  '🔥',
+            rescheduled:   '🔄',
+        };
+        const labels = {
+            order_ready:   'Готов к выдаче',
+            deadline_risk: 'Риск просрочки',
+            urgent_added:  'Срочный заказ',
+            rescheduled:   'Перепланирование',
+        };
+        container.innerHTML = data.data.map(n => {
+            const timeAgo = formatTimeAgo(new Date(n.created_at));
+            return `
+            <div class="notif-admin-item ${n.is_read ? '' : 'unread'} type-${n.type}">
+                <div class="notif-icon-big">${icons[n.type] || '🔔'}</div>
+                <div style="flex:1;">
+                    <div class="notif-admin-msg">${n.message}</div>
+                    <div class="notif-admin-time">${labels[n.type] || n.type} &nbsp;·&nbsp; ${timeAgo}</div>
+                </div>
+                ${!n.is_read ? `
+                <button onclick="markOneRead(${n.id})" style="background:none;border:none;font-size:12px;color:#9ca3af;cursor:pointer;white-space:nowrap;padding:4px 8px;border-radius:6px;transition:background .15s;"
+                    onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">
+                    Прочитано
+                </button>` : ''}
+            </div>`;
+        }).join('');
+    } catch {
+        container.innerHTML = '<div class="empty-state">Ошибка загрузки</div>';
+    }
+}
+
+async function markAllReadAdmin() {
+    try {
+        await fetch(`${API_ADMIN}/notifications/read`, {
+            method:  'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: 'all' })
+        });
+        showToast('Все уведомления прочитаны');
+        loadNotificationsAdmin();
+        loadStats();
+    } catch {
+        showToast('Ошибка', 'error');
+    }
+}
+
+async function markOneRead(id) {
+    try {
+        await fetch(`${API_ADMIN}/notifications/read`, {
+            method:  'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: [id] })
+        });
+        loadNotificationsAdmin();
+        loadStats();
+    } catch {}
+}
+
+function formatTimeAgo(date) {
+    const diff = Math.floor((Date.now() - date) / 1000);
+    if (diff < 60)   return 'только что';
+    if (diff < 3600) return Math.floor(diff / 60) + ' мин назад';
+    if (diff < 86400) return Math.floor(diff / 3600) + ' ч назад';
+    return date.toLocaleDateString('ru-RU');
+}
+
+async function deleteUser(id, name) {
+    if (!confirm(`Удалить пользователя "${name}"? Это действие нельзя отменить.`)) return;
+    try {
+        const res = await fetch(`${API_ADMIN}/admin/users/${id}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (result.success) {
+            showToast('Пользователь удалён');
+            loadUsersAdmin();
+        } else {
+            showToast(result.message || 'Ошибка', 'error');
+        }
+    } catch {
+        showToast('Ошибка соединения', 'error');
+    }
+}
+
+
+// ============================================
+// ГЕНЕРАЦИЯ АКТА ПРИЁМА — PDFMAKE
+// ============================================
+function printAct(o) {
+    var dateStr = new Date(o.created_at).toLocaleDateString('ru-RU', {
+        day: '2-digit', month: '2-digit', year: 'numeric'
+    });
+    var preferredDate = o.preferred_date
+        ? new Date(o.preferred_date).toLocaleDateString('ru-RU') + (o.preferred_time ? ' в ' + o.preferred_time : '')
+        : '—';
+    var urgencyText = o.urgency === 'urgent' ? 'Срочно (день в день)' : 'Обычная (1–3 дня)';
+    var warrantyText = o.has_warranty ? 'Есть' : 'Нет';
+
+    var content = [
+        { text: 'АКТ ПРИЁМА УСТРОЙСТВА В РЕМОНТ', style: 'header', alignment: 'center' },
+        { text: 'ООО «МИНИН СЕРВИС» / БытСервис · Оренбург · Работаем 24/7', style: 'sub', alignment: 'center' },
+        {
+            columns: [
+                { text: 'Заявка №' + o.id, bold: true, fontSize: 12 },
+                { text: 'Дата приёма: ' + dateStr, alignment: 'right', fontSize: 11 }
+            ],
+            margin: [0, 8, 0, 4]
+        },
+        { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2 }], margin: [0, 0, 0, 10] },
+
+        { text: 'ДАННЫЕ КЛИЕНТА', style: 'sectionTitle' },
+        { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5 }], margin: [0, 0, 0, 6] },
+        {
+            table: {
+                widths: ['40%', '60%'],
+                body: [
+                    [{ text: 'Имя клиента:', bold: true }, { text: o.client_name || '—' }],
+                    [{ text: 'Телефон:', bold: true }, { text: o.phone || '—' }]
+                ]
+            },
+            layout: 'noBorders',
+            margin: [0, 0, 0, 10]
+        },
+
+        { text: 'ДАННЫЕ УСТРОЙСТВА', style: 'sectionTitle' },
+        { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5 }], margin: [0, 0, 0, 6] },
+        {
+            table: {
+                widths: ['40%', '60%'],
+                body: [
+                    [{ text: 'Тип устройства:', bold: true }, { text: o.device_type || '—' }],
+                    [{ text: 'Модель:', bold: true }, { text: o.device_model || '—' }],
+                    [{ text: 'Услуга:', bold: true }, { text: o.service_type || '—' }],
+                    [{ text: 'Срочность:', bold: true }, { text: urgencyText }],
+                    [{ text: 'Гарантия / чек:', bold: true }, { text: warrantyText }],
+                    [{ text: 'Желаемая дата:', bold: true }, { text: preferredDate }],
+                    o.problem
+                        ? [{ text: 'Описание проблемы:', bold: true }, { text: o.problem }]
+                        : [{ text: '' }, { text: '' }]
+                ]
+            },
+            layout: 'noBorders',
+            margin: [0, 0, 0, 10]
+        },
+
+        { text: 'УСЛОВИЯ ПРИЁМА', style: 'sectionTitle' },
+        { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5 }], margin: [0, 0, 0, 6] },
+        { text: '1. Диагностика входит в стоимость ремонта.', style: 'term' },
+        { text: '2. Стоимость ремонта согласовывается с клиентом до начала работ.', style: 'term' },
+        { text: '3. На выполненные работы и установленные запчасти предоставляется гарантия.', style: 'term' },
+        { text: '4. Сервисный центр не несёт ответственности за данные, хранящиеся на устройстве.', style: 'term' },
+        { text: '5. Срок хранения невостребованного устройства после уведомления — 30 дней.', style: 'term' },
+
+        {
+            columns: [
+                {
+                    stack: [
+                        { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 220, y2: 0, lineWidth: 0.5 }] },
+                        { text: 'Подпись клиента / ' + (o.client_name || ''), fontSize: 8, color: '#888', margin: [0, 3, 0, 0] }
+                    ]
+                },
+                {
+                    stack: [
+                        { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 220, y2: 0, lineWidth: 0.5 }] },
+                        { text: 'Подпись администратора', fontSize: 8, color: '#888', margin: [0, 3, 0, 0] }
+                    ]
+                }
+            ],
+            margin: [0, 24, 0, 0]
+        },
+        { text: 'Документ сформирован автоматически системой БытСервис', fontSize: 8, color: '#ccc', alignment: 'center', margin: [0, 20, 0, 0] }
+    ];
+
+    var docDef = {
+        content: content,
+        styles: {
+            header: { fontSize: 15, bold: true, margin: [0, 0, 0, 4] },
+            sub: { fontSize: 10, color: '#555', margin: [0, 0, 0, 10] },
+            sectionTitle: { fontSize: 10, bold: true, margin: [0, 0, 0, 0] },
+            term: { fontSize: 10, margin: [0, 0, 0, 3] }
+        },
+        defaultStyle: { fontSize: 11, font: 'Roboto' },
+        pageMargins: [40, 40, 40, 40]
+    };
+
+    pdfMake.createPdf(docDef).download('act_' + o.id + '_' + (o.client_name || 'client').replace(/\s+/g, '_') + '.pdf');
+}
+
+const GANTT_START = 9, GANTT_END = 21;
+
+function fmtGantt(dt) {
+    return `${new Date(dt).getHours().toString().padStart(2,'0')}:${new Date(dt).getMinutes().toString().padStart(2,'0')}`;
+}
+function escGantt(s) {
+    return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function loadAdminGantt() {
+    const container = document.getElementById('admin-gantt-container');
+    container.innerHTML = '<div class="loading-state">Загрузка...</div>';
+    try {
+        const todayDate = new Date();
+        const dd = String(todayDate.getDate()).padStart(2,'0');
+        const mm = String(todayDate.getMonth()+1).padStart(2,'0');
+        const today = todayDate.getFullYear() + '-' + mm + '-' + dd;
+        const res = await fetch(API_ADMIN + '/schedule?date=' + today);
+        const data = await res.json();
+        if (!data.success || !data.data.length) {
+            container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gray);font-size:14px;">Расписание не построено.<br><span style="font-size:12px;">Нажмите «Пересчитать вручную»</span></div>';
+            return;
+        }
+        const byMaster = {};
+        for (const slot of data.data) {
+            if (!byMaster[slot.master_id]) byMaster[slot.master_id] = { name: slot.master_name, slots: [] };
+            byMaster[slot.master_id].slots.push(slot);
+        }
+        const allSlots = Object.values(byMaster).flatMap(m => m.slots);
+        const allMins = allSlots.flatMap(s => {
+            const st = new Date(s.start_time), en = new Date(s.end_time);
+            return [st.getHours()*60+st.getMinutes(), en.getHours()*60+en.getMinutes()];
+        });
+        const dynStart = Math.max(GANTT_START, Math.floor(Math.min(...allMins)/60) - 1);
+        const dynEnd   = Math.min(GANTT_END,   Math.ceil(Math.max(...allMins)/60)  + 1);
+        const dynHours = dynEnd - dynStart;
+        const nowTime = new Date(), nowMin = nowTime.getHours()*60 + nowTime.getMinutes();
+        const nowPct = Math.min(100, Math.max(0, (nowMin - dynStart*60) / (dynHours*60) * 100));
+        let html = '<div class="gantt-timeline">';
+        for (let h = dynStart; h <= dynEnd; h++) {
+            const pct = (h - dynStart) / dynHours * 100;
+            html += `<div class="gantt-hour" style="left:${pct}%">${h}:00</div>`;
+        }
+        html += '</div>';
+        for (const [, md] of Object.entries(byMaster)) {
+            html += `<div class="gantt-row"><div class="gantt-master-label" title="${md.name}">${md.name}</div><div class="gantt-track">`;
+            for (let h = dynStart; h <= dynEnd; h++) {
+                const tp = (h - dynStart) / dynHours * 100;
+                html += `<div class="gantt-tick" style="left:${tp}%"></div>`;
+            }
+            for (const slot of md.slots) {
+                const s = new Date(slot.start_time), e = new Date(slot.end_time);
+                const sm = s.getHours()*60 + s.getMinutes();
+                const em = e.getHours()*60 + e.getMinutes();
+                const lp = Math.max(0, (sm - dynStart*60) / (dynHours*60) * 100);
+                const wp = Math.max(0.5, (em - sm) / (dynHours*60) * 100);
+                const cls = slot.status === 'done' ? 'done' : (slot.urgency === 'urgent' || slot.priority === 1 ? 'urgent' : slot.stage);
+                const ti = `#${slot.order_id} ${slot.client_name}\n${slot.device_type}\n${slot.stage === 'diagnosis' ? 'Диагностика' : 'Ремонт'}\n${fmtGantt(s)} — ${fmtGantt(e)}`;
+                const slotLabel = wp > 6 ? `#${slot.order_id} ${slot.client_name}` : (wp > 2.5 ? `#${slot.order_id}` : '');
+                html += `<div class="gantt-slot ${cls}" style="left:${lp}%;width:${wp}%" title="${escGantt(ti)}"><span class="gantt-slot-label">${slotLabel}</span></div>`;
+            }
+            if (nowPct > 0 && nowPct < 100) html += `<div class="gantt-now-line" style="left:${nowPct}%"></div>`;
+            html += '</div></div>';
+        }
+        container.innerHTML = html;
+    } catch(err) {
+        console.error(err);
+        container.innerHTML = '<div class="loading-state">Ошибка загрузки</div>';
+    }
+}
+</script>
+</body>
+</html>

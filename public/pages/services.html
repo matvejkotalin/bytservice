@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>БытСервис</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="topbar">
+    <div class="container">
+        <div class="topbar-left"><span class="dot"></span> Работаем 24/7</div>
+        <div class="topbar-right">
+            <a href="contacts.html">Оренбург, Туркестанская, 2А</a>
+            <a href="contacts.html">Оренбург, Салмышская, 66/2</a>
+            <a href="contacts.html">Оренбург, Брестская, 5/2</a>
+        </div>
+    </div>
+</div>
+
+<header>
+    <div class="container">
+        <a href="../index.html" class="logo">
+            <div class="logo-icon">Б</div>
+            <div><div class="logo-text"><span>Быт</span>Сервис</div><div class="logo-sub">Ремонт электроники и бытовой техники</div></div>
+        </a>
+        <nav>
+            <a href="../index.html">Главная</a>
+            <a href="services.html" class="active">Услуги</a>
+            <a href="prices.html">Цены</a>
+            <a href="reviews.html">Отзывы</a>
+            <a href="contacts.html">Контакты</a>
+            <a href="#" id="user-cabinet-btn" class="user-icon-link" title="Личный кабинет">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span id="user-cabinet-name" style="display:none; font-size:14px; font-weight:600; margin-left:6px;"></span>
+            </a>
+        </nav>
+       <div class="header-actions">
+    <a href="tel:+73532507030" class="phone-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 5a2 2 0 0 1 1.95-2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.09a16 16 0 0 0 6 6l.9-.9a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+        +7 (3532) 50-70-30
+    </a>
+    <button class="btn btn-primary" data-modal="appointment-modal">Записаться</button>
+    <button class="burger"><span></span><span></span><span></span></button>
+</div>
+    </div>
+</header>
+
+<div style="background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; padding: 60px 0;">
+    <div class="container">
+        <div style="font-size:13px; color: rgba(255,255,255,0.5); margin-bottom:12px;">
+            <a href="../index.html" style="color: rgba(255,255,255,0.5);">Главная</a> &rarr; Услуги
+        </div>
+        <h1 style="font-size:36px;">Наши услуги</h1>
+        <p style="color: rgba(255,255,255,0.7); margin-top:8px;">Профессиональный ремонт электроники и бытовой техники</p>
+    </div>
+</div>
+
+
+<section>
+    <div class="container" id="services-page-container">
+        <div style="text-align:center; padding: 50px; color: var(--gray);">
+            <div class="loader"></div>
+            Загрузка списка услуг из базы данных...
+        </div>
+    </div>
+</section>
+
+
+<section class="cta-section">
+    <div class="container">
+        <h2>Нужен ремонт техники?</h2>
+        <p>Оставьте заявку и мы перезвоним вам в течение 15 минут</p>
+        <div class="cta-actions">
+            <button class="btn btn-white btn-lg" data-modal="appointment-modal">Записаться онлайн</button>
+            <a href="tel:+73532507030" class="btn btn-lg" style="border: 2px solid white; color:white;">+7 (3532) 50-70-30</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="logo">
+                    <div class="logo-icon">Б</div>
+                    <div><div class="logo-text" style="color:white;"><span>Быт</span>Сервис</div></div>
+                </div>
+                <p>Профессиональный ремонт электроники и бытовой техники в Оренбурге. Работаем с 2016 года.</p>
+            </div>
+         <div class="footer-col">
+    <h4>Услуги</h4>
+    <ul>
+        <li><a href="services.html">Ремонт смартфонов и планшетов</a></li>
+        <li><a href="services.html">Ремонт ноутбуков и компьютеров</a></li>
+        <li><a href="services.html">Ремонт телевизоров и мониторов</a></li>
+        <li><a href="services.html">Ремонт бытовой техники</a></li>
+        <li><a href="services.html">Ремонт садовой техники</a></li>
+        <li><a href="services.html">Восстановление данных</a></li>
+    </ul>
+</div>
+            <div class="footer-col">
+                <h4>Компания</h4>
+                <ul>
+                    <li><a href="reviews.html">Отзывы</a></li>
+                    <li><a href="prices.html">Цены</a></li>
+                    <li><a href="contacts.html">Контакты</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Контакты</h4>
+                <ul>
+                    <li><a href="tel:+73532507030">+7 (3532) 50-70-30</a></li>
+                    <li><a href="contacts.html">Туркестанская, 2А</a></li>
+                    <li><a href="contacts.html">Салмышская, 66/2</a></li>
+                    <li><a href="contacts.html">Брестская, 5/2</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 БытСервис. Все права защищены.</span>
+            <span>Оренбург, работаем 24/7</span>
+        </div>
+    </div>
+</footer>
+
+<div class="modal-overlay" id="appointment-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Онлайн-запись на ремонт</h3>
+            <button class="modal-close">&#10005;</button>
+        </div>
+                <form class="modal-form" id="appointment-form">
+            <!-- Шаг 1: Контакты -->
+            <div class="form-section-label">Контактная информация</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Ваше имя *</label>
+                    <input class="form-control" type="text" name="client_name" placeholder="Иван Иванов" required>
+                </div>
+                <div class="form-group">
+                    <label>Телефон *</label>
+                    <input class="form-control" type="tel" name="phone" placeholder="+7 (___) ___-__-__" required>
+                </div>
+            </div>
+
+            <!-- Шаг 2: Устройство -->
+            <div class="form-section-label">Устройство</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Тип устройства *</label>
+                    <select class="form-control" name="device_type" required>
+                        <option value="">Выберите тип</option>
+                        <option>Смартфон</option>
+                        <option>Планшет</option>
+                        <option>Ноутбук</option>
+                        <option>Компьютер</option>
+                        <option>Монитор</option>
+                        <option>Телевизор</option>
+                        <option>Техника Apple</option>
+                        <option>Принтер</option>
+                        <option>МФУ / Копир</option>
+                        <option>Фотоаппарат</option>
+                        <option>Игровая консоль</option>
+                        <option>Микроволновка</option>
+                        <option>Кофемашина</option>
+                        <option>Стиральная машина</option>
+                        <option>Холодильник</option>
+                        <option>Кондиционер</option>
+                        <option>Робот-пылесос</option>
+                        <option>Электросамокат</option>
+                        <option>Электроинструмент</option>
+                        <option>Снегоочиститель</option>
+                        <option>Мотокультиватор</option>
+                        <option>Мотопомпа</option>
+                        <option>Бензопила / Электропила</option>
+                        <option>Триммер</option>
+                        <option>Генератор</option>
+                        <option>Заправка картриджей</option>
+                        <option>Восстановление данных</option>
+                        <option>Онлайн-касса</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Модель устройства</label>
+                    <input class="form-control" type="text" name="device_model" placeholder="iPhone 14, Samsung Galaxy S23...">
+                </div>
+            </div>
+
+            <!-- Шаг 3: Услуга и проблема -->
+            <div class="form-section-label">Неисправность</div>
+            <div class="form-group">
+                <label>Нужная услуга</label>
+                <input class="form-control" type="text" name="service_type" placeholder="Замена экрана, чистка от пыли...">
+            </div>
+            <div class="form-group">
+                <label>Опишите проблему подробнее</label>
+                <textarea class="form-control" name="problem" rows="3" placeholder="Треснул экран после падения, не реагирует на касание в нижней части..."></textarea>
+            </div>
+
+            <!-- Шаг 4: Доп. информация -->
+            <div class="form-section-label">Дополнительно</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Срочность</label>
+                    <select class="form-control" name="urgency">
+                        <option value="normal">Обычная (1–3 дня)</option>
+                        <option value="urgent">Срочно (день в день)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Устройство на гарантии?</label>
+                    <select class="form-control" name="has_warranty">
+                        <option value="0">Нет / не знаю</option>
+                        <option value="1">Да, есть чек/гарантия</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Удобная дата *</label>
+                    <input class="form-control" type="date" name="preferred_date" required>
+                </div>
+                <div class="form-group">
+                    <label>Удобное время *</label>
+                    <select class="form-control" name="preferred_time" required>
+                        <option value="">Выберите время</option>
+                        <option>09:00</option><option>10:00</option><option>11:00</option>
+                        <option>12:00</option><option>13:00</option><option>14:00</option>
+                        <option>15:00</option><option>16:00</option><option>17:00</option>
+                        <option>18:00</option><option>19:00</option><option>20:00</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:4px;">Отправить заявку</button>
+        </form>
+
+    </div>
+</div>
+
+
+<script>
+// Патч: используем min_price вместо price_from=0 для отображения цены категории
+(function() {
+    var _origFetch = window.fetch;
+    window.fetch = function(url) {
+        var args = arguments;
+        var p = _origFetch.apply(this, args);
+        if (typeof url === 'string' && url.includes('/api/services')) {
+            return p.then(function(r) {
+                var _origJson = r.json.bind(r);
+                r.json = function() {
+                    return _origJson().then(function(data) {
+                        if (data && data.data) {
+                            data.data = data.data.map(function(s) {
+                                // Если price_from = 0, заменяем на min_price категории
+                                if (!s.price_from && s.min_price) {
+                                    s.price_from = s.min_price;
+                                }
+                                return s;
+                            });
+                        }
+                        return data;
+                    });
+                };
+                return r;
+            });
+        }
+        return p;
+    };
+})();
+</script>
+<script src="../js/main.js"></script>
+</body>
+</html>

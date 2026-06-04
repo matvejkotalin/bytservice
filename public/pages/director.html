@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>БытСервис — Панель директора</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .dir-page-header {
+            background: linear-gradient(135deg, var(--secondary) 0%, #16213e 60%, #0f3460 100%);
+            color: white; padding: 40px 0;
+        }
+        .dir-page-header h1 { font-size: 28px; margin-bottom: 6px; }
+        .dir-page-header p  { color: rgba(255,255,255,0.6); font-size: 14px; }
+        .dir-breadcrumb { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 12px; }
+        .dir-breadcrumb a { color: rgba(255,255,255,0.4); }
+        .dir-wrap { padding: 32px 0 60px; flex: 1; }
+        .dir-toprow {
+            display: flex; align-items: center;
+            justify-content: space-between; gap: 12px;
+            margin-bottom: 24px; flex-wrap: wrap;
+        }
+        .dir-date { font-size: 17px; font-weight: 700; color: var(--text); }
+        .dir-date span { color: var(--primary); }
+        .dir-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-build {
+            background: var(--primary); color: white; border: none;
+            padding: 10px 20px; border-radius: var(--radius-sm);
+            font-size: 14px; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+            transition: background var(--transition), transform .15s;
+            font-family: "Montserrat", sans-serif;
+        }
+        .btn-build:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        .btn-build:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+        .btn-refresh-dir {
+            background: white; border: 1.5px solid var(--gray-light);
+            color: var(--text); padding: 10px 16px; border-radius: var(--radius-sm);
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 6px;
+            transition: all var(--transition);
+        }
+        .btn-refresh-dir:hover { border-color: var(--primary); color: var(--primary); }
+        .kpi-grid {
+            display: grid; grid-template-columns: repeat(6, 1fr);
+            gap: 16px; margin-bottom: 24px;
+        }
+        @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 600px)  { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+        .kpi-card {
+            background: white; border-radius: var(--radius);
+            padding: 20px 16px; box-shadow: var(--shadow);
+            border-top: 3px solid var(--kpi-color, var(--primary));
+        }
+        .kpi-num {
+            font-size: 34px; font-weight: 800; line-height: 1;
+            color: var(--kpi-color, var(--primary));
+            font-family: "Montserrat", sans-serif;
+        }
+        .kpi-label {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .5px; color: var(--gray); margin-top: 6px;
+        }
+        .dir-grid {
+            display: grid; grid-template-columns: 1fr;
+            gap: 20px; margin-bottom: 20px;
+        }
+        .dir-side-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 20px; margin-bottom: 20px;
+        }
+        @media (max-width: 768px) { .dir-side-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 960px) { .dir-grid { grid-template-columns: 1fr; } }
+        .section-card {
+            background: white; border-radius: var(--radius);
+            box-shadow: var(--shadow); overflow: hidden;
+        }
+        .section-card-head {
+            padding: 18px 22px; border-bottom: 1px solid var(--gray-light);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .section-card-head h3 {
+            font-size: 15px; font-weight: 700; color: var(--text);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .section-card-body { padding: 20px 22px; }
+        .gantt-wrap { overflow-x: auto; padding-bottom: 0; }
+        .gantt-container { min-width: 640px; position: relative; }
+        .gantt-timeline {
+            position: relative;
+            margin-left: 130px;
+            margin-bottom: 6px;
+            height: 20px;
+            border-bottom: 2px solid var(--gray-light);
+        }
+        .gantt-hour {
+            position: absolute;
+            font-size: 11px; font-weight: 700; color: var(--gray);
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+        .gantt-row { display: flex; align-items: center; margin-bottom: 12px; }
+        .gantt-master-label {
+            width: 130px; flex-shrink: 0; font-size: 13px; font-weight: 600;
+            color: var(--text); padding-right: 12px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .gantt-track {
+            flex: 1; height: 52px; background: var(--bg);
+            border-radius: var(--radius-sm); position: relative;
+            overflow: hidden;
+        }
+        .gantt-tick {
+            position: absolute; top: 0; bottom: 0; width: 1px;
+            background: var(--gray-light); pointer-events: none;
+        }
+        .gantt-slot {
+            position: absolute; top: 4px; bottom: 4px; border-radius: 6px;
+            display: flex; align-items: center; padding: 0 6px;
+            overflow: hidden; cursor: default; min-width: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.15);
+        }
+        .gantt-slot:hover { filter: brightness(1.1); z-index: 10; }
+        .gantt-slot-label { font-size: 11px; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+        .gantt-slot.diagnosis { background: linear-gradient(135deg, #2563eb, #60a5fa); }
+        .gantt-slot.repair    { background: linear-gradient(135deg, #16a34a, #4ade80); }
+        .gantt-slot.urgent { background: linear-gradient(135deg, #e63329, #f87171); }
+        .gantt-slot.done   { background: linear-gradient(135deg, #9ca3af, #d1d5db); }
+        .gantt-now-line {
+            position: absolute; top: 0; bottom: 0; width: 2px;
+            background: var(--primary); z-index: 20; pointer-events: none;
+        }
+        .gantt-now-line::before {
+            content: "сейчас"; position: absolute; top: -18px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px; font-weight: 700; color: var(--primary); white-space: nowrap;
+        }
+        .gantt-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--gray-light); }
+        .gantt-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray); }
+        .gantt-legend-color { width: 14px; height: 14px; border-radius: 4px; }
+        .algo-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(37,99,235,0.08); color: var(--accent);
+            border-radius: var(--radius-sm); padding: 4px 12px;
+            font-size: 12px; font-weight: 700;
+        }
+        .load-list { display: flex; flex-direction: column; gap: 16px; }
+        .load-item-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .load-item-name { font-size: 14px; font-weight: 600; color: var(--text); }
+        .load-item-pct  { font-size: 14px; font-weight: 800; color: var(--accent); }
+        .load-bar-wrap  { background: var(--gray-light); border-radius: 20px; height: 10px; overflow: hidden; }
+        .load-bar-fill  { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--accent), #60a5fa); transition: width .6s; }
+        .load-bar-fill.danger { background: linear-gradient(90deg, #f59e0b, var(--primary)); }
+        .load-item-sub  { font-size: 12px; color: var(--gray); margin-top: 4px; }
+        .equip-table { width: 100%; border-collapse: collapse; }
+        .equip-table th { text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--gray); background: var(--bg); }
+        .equip-table td { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid var(--gray-light); vertical-align: middle; }
+        .equip-table tr:last-child td { border-bottom: none; }
+        .equip-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .notif-admin-list { display: flex; flex-direction: column; }
+        .notif-admin-item {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 14px 20px; border-bottom: 1px solid var(--gray-light);
+            transition: background var(--transition);
+        }
+        .notif-admin-item:last-child { border-bottom: none; }
+        .notif-admin-item:hover { background: var(--bg); }
+        .notif-admin-item.unread { background: rgba(37,99,235,0.04); }
+        .notif-admin-item.type-order_ready   { border-left: 3px solid #22c55e; }
+        .notif-admin-item.type-deadline_risk { border-left: 3px solid var(--primary); }
+        .notif-admin-item.type-urgent_added  { border-left: 3px solid #f59e0b; }
+        .notif-icon-big { font-size: 20px; flex-shrink: 0; line-height: 1.4; }
+        .notif-msg  { font-size: 13px; color: var(--text); line-height: 1.4; }
+        .notif-time { font-size: 11px; color: var(--gray); margin-top: 3px; }
+        .overdue-item {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 12px 14px; background: rgba(230,51,41,0.05);
+            border-radius: var(--radius-sm); border-left: 3px solid var(--primary);
+            margin-bottom: 10px;
+        }
+        .overdue-item:last-child { margin-bottom: 0; }
+        .overdue-item-text { font-size: 13px; color: var(--text); }
+        .dir-bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .dir-bottom-grid { grid-template-columns: 1fr; } }
+        .dir-auth-screen { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+        .dir-auth-box { background: white; border-radius: 20px; padding: 40px; width: 100%; max-width: 380px; box-shadow: var(--shadow-lg); }
+        .loading-state { text-align: center; padding: 40px; color: var(--gray); font-size: 14px; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="container">
+        <div class="topbar-left"><span class="dot"></span> Работаем 24/7</div>
+        <div class="topbar-right">
+            <a href="contacts.html">Оренбург, Туркестанская, 2А</a>
+            <a href="contacts.html">Оренбург, Салмышская, 66/2</a>
+            <a href="contacts.html">Оренбург, Брестская, 5/2</a>
+        </div>
+    </div>
+</div>
+
+<header>
+    <div class="container">
+        <a href="../index.html" class="logo">
+            <div class="logo-icon">Б</div>
+            <div>
+                <div class="logo-text"><span>Быт</span>Сервис</div>
+                <div class="logo-sub">Ремонт электроники и бытовой техники</div>
+            </div>
+        </a>
+        <nav>
+            <a href="../index.html">Главная</a>
+            <a href="services.html">Услуги</a>
+            <a href="prices.html">Цены</a>
+            <a href="reviews.html">Отзывы</a>
+            <a href="contacts.html">Контакты</a>
+            <a href="#" id="user-cabinet-btn" class="user-icon-link" title="Личный кабинет">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span id="user-cabinet-name" style="display:none; font-size:14px; font-weight:600; margin-left:6px;"></span>
+            </a>
+        </nav>
+        <div class="header-actions">
+            <a href="tel:+73532507030" class="phone-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 5a2 2 0 0 1 1.95-2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.09a16 16 0 0 0 6 6l.9-.9a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+                +7 (3532) 50-70-30
+            </a>
+            <button class="btn btn-primary" data-modal="appointment-modal">Записаться</button>
+            <button class="burger"><span></span><span></span><span></span></button>
+        </div>
+    </div>
+</header>
+
+<div id="login-screen" style="display:none; flex:1;">
+    <div class="dir-auth-screen">
+        <div class="dir-auth-box">
+            <h2 style="text-align:center; margin-bottom:8px;">Вход</h2>
+            <p style="text-align:center; color:var(--gray); font-size:14px; margin-bottom:24px;">Панель директора</p>
+            <form id="login-form" class="modal-form">
+                <div class="form-group">
+                    <label>Имя пользователя</label>
+                    <input class="form-control" type="text" id="login-name" placeholder="Имя" required>
+                </div>
+                <div class="form-group" style="margin-top:14px;">
+                    <label>Пароль</label>
+                    <input class="form-control" type="password" id="login-pass" placeholder="••••••••" required>
+                </div>
+                <p id="login-err" style="color:var(--primary);font-size:13px;display:none;margin-top:8px;text-align:center;"></p>
+                <button type="submit" class="btn btn-primary" style="width:100%;margin-top:20px;">Войти</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="dir-panel" style="display:none;">
+    <div class="dir-page-header">
+        <div class="container">
+            <div class="dir-breadcrumb"><a href="../index.html">Главная</a> &rarr; Панель директора</div>
+            <h1>Панель директора</h1>
+            <p>Сводная информация по работе сервисного центра</p>
+        </div>
+    </div>
+
+    <div class="dir-wrap">
+        <div class="container">
+
+            <div class="dir-toprow">
+                <div class="dir-date" id="dir-today"></div>
+                <div class="dir-actions">
+                    <button class="btn-refresh-dir" onclick="loadAll()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                        Обновить
+                    </button>
+                    <button class="btn-build" id="build-btn" onclick="buildSchedule()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        Пересчитать расписание
+                    </button>
+                    <button class="btn-refresh-dir" onclick="exportToExcel()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Выгрузить в Excel
+                    </button>
+                </div>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi-card" style="--kpi-color:var(--accent)"><div class="kpi-num" id="kpi-total">—</div><div class="kpi-label">Всего заказов</div></div>
+                <div class="kpi-card" style="--kpi-color:#f59e0b"><div class="kpi-num" id="kpi-inprogress">—</div><div class="kpi-label">В работе</div></div>
+                <div class="kpi-card" style="--kpi-color:#16a34a"><div class="kpi-num" id="kpi-done-today">—</div><div class="kpi-label">Готово сегодня</div></div>
+                <div class="kpi-card" style="--kpi-color:var(--accent)"><div class="kpi-num" id="kpi-new">—</div><div class="kpi-label">Новых</div></div>
+                <div class="kpi-card" style="--kpi-color:var(--primary)"><div class="kpi-num" id="kpi-overdue">—</div><div class="kpi-label">Просрочено</div></div>
+                <div class="kpi-card" style="--kpi-color:#8b5cf6"><div class="kpi-num" id="kpi-notifs">—</div><div class="kpi-label">Уведомлений</div></div>
+            </div>
+
+            <!-- Диаграмма Ганта — на всю ширину -->
+            <div class="dir-grid">
+                <div class="section-card">
+                    <div class="section-card-head">
+                        <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="12" height="4" rx="1"/><rect x="3" y="16" width="15" height="4" rx="1"/></svg>Диаграмма Ганта</h3>
+                        <span class="algo-badge" id="algo-label">нет данных</span>
+                    </div>
+                    <div class="section-card-body">
+                        <div class="gantt-wrap">
+                            <div class="gantt-container" id="gantt-container"><div class="loading-state">Загрузка расписания...</div></div>
+                        </div>
+                        <div class="gantt-legend">
+                            <div class="gantt-legend-item"><div class="gantt-legend-color" style="background:linear-gradient(135deg,#2563eb,#60a5fa)"></div>Диагностика</div>
+                            <div class="gantt-legend-item"><div class="gantt-legend-color" style="background:linear-gradient(135deg,#16a34a,#4ade80)"></div>Ремонт</div>
+                            <div class="gantt-legend-item"><div class="gantt-legend-color" style="background:linear-gradient(135deg,#e63329,#f87171)"></div>Срочный</div>
+                            <div class="gantt-legend-item"><div class="gantt-legend-color" style="background:linear-gradient(135deg,#9ca3af,#d1d5db)"></div>Выполнен</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Мастера и уведомления — в ряд под Гантом -->
+            <div class="dir-side-grid">
+                <div class="section-card">
+                    <div class="section-card-head">
+                        <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Загрузка мастеров</h3>
+                    </div>
+                    <div class="section-card-body">
+                        <div class="load-list" id="masters-load"><div class="loading-state" style="padding:20px;">Загрузка...</div></div>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <div class="section-card-head">
+                        <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Уведомления</h3>
+                        <button onclick="markAllRead()" style="background:none;border:none;font-size:12px;color:var(--accent);cursor:pointer;font-weight:600;">Прочитать все</button>
+                    </div>
+                    <div class="notif-admin-list" id="notif-list"><div class="loading-state">Загрузка...</div></div>
+                </div>
+            </div>
+
+            <div class="dir-bottom-grid">
+                <div class="section-card">
+                    <div class="section-card-head">
+                        <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>Загрузка оборудования</h3>
+                    </div>
+                    <table class="equip-table">
+                        <thead><tr><th>Оборудование</th><th>Тип</th><th>Сеансов</th><th>Загрузка</th></tr></thead>
+                        <tbody id="equip-tbody"><tr><td colspan="4" class="loading-state">Загрузка...</td></tr></tbody>
+                    </table>
+                </div>
+                <div class="section-card">
+                    <div class="section-card-head">
+                        <h3 style="color:var(--primary);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Просроченные заказы</h3>
+                    </div>
+                    <div class="section-card-body" id="overdue-list"><div class="loading-state">Загрузка...</div></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="logo"><div class="logo-icon">Б</div><div><div class="logo-text" style="color:white;"><span>Быт</span>Сервис</div></div></div>
+                <p>Профессиональный ремонт электроники и бытовой техники в Оренбурге. Работаем с 2016 года.</p>
+            </div>
+            <div class="footer-col"><h4>Услуги</h4><ul>
+                <li><a href="services.html">Ремонт смартфонов и планшетов</a></li>
+                <li><a href="services.html">Ремонт ноутбуков и компьютеров</a></li>
+                <li><a href="services.html">Ремонт телевизоров и мониторов</a></li>
+                <li><a href="services.html">Ремонт бытовой техники</a></li>
+                <li><a href="services.html">Ремонт садовой техники</a></li>
+                <li><a href="services.html">Восстановление данных</a></li>
+            </ul></div>
+            <div class="footer-col"><h4>Компания</h4><ul>
+                <li><a href="reviews.html">Отзывы</a></li>
+                <li><a href="prices.html">Цены</a></li>
+                <li><a href="contacts.html">Контакты</a></li>
+            </ul></div>
+            <div class="footer-col"><h4>Контакты</h4><ul>
+                <li><a href="tel:+73532507030">+7 (3532) 50-70-30</a></li>
+                <li><a href="contacts.html">Туркестанская, 2А</a></li>
+                <li><a href="contacts.html">Салмышская, 66/2</a></li>
+                <li><a href="contacts.html">Брестская, 5/2</a></li>
+            </ul></div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 БытСервис. Все права защищены.</span>
+            <span>Оренбург, работаем 24/7</span>
+        </div>
+    </div>
+</footer>
+
+<div class="modal-overlay" id="appointment-modal">
+    <div class="modal">
+        <div class="modal-header"><h3>Онлайн-запись на ремонт</h3><button class="modal-close">&#10005;</button></div>
+        <form class="modal-form" id="appointment-form">
+            <div class="form-section-label">Контактная информация</div>
+            <div class="form-row">
+                <div class="form-group"><label>Ваше имя *</label><input class="form-control" type="text" name="client_name" placeholder="Иван Иванов" required></div>
+                <div class="form-group"><label>Телефон *</label><input class="form-control" type="tel" name="phone" placeholder="+7 (___) ___-__-__" required></div>
+            </div>
+            <div class="form-section-label">Устройство</div>
+            <div class="form-row">
+                <div class="form-group"><label>Тип устройства *</label>
+                    <select class="form-control" name="device_type" required>
+                        <option value="">Выберите тип</option>
+                        <option>Смартфон</option>
+                        <option>Планшет</option>
+                        <option>Ноутбук</option>
+                        <option>Компьютер</option>
+                        <option>Монитор</option>
+                        <option>Телевизор</option>
+                        <option>Техника Apple</option>
+                        <option>Принтер</option>
+                        <option>МФУ / Копир</option>
+                        <option>Фотоаппарат</option>
+                        <option>Игровая консоль</option>
+                        <option>Микроволновка</option>
+                        <option>Кофемашина</option>
+                        <option>Стиральная машина</option>
+                        <option>Холодильник</option>
+                        <option>Кондиционер</option>
+                        <option>Робот-пылесос</option>
+                        <option>Электросамокат</option>
+                        <option>Электроинструмент</option>
+                        <option>Снегоочиститель</option>
+                        <option>Мотокультиватор</option>
+                        <option>Мотопомпа</option>
+                        <option>Бензопила / Электропила</option>
+                        <option>Триммер</option>
+                        <option>Генератор</option>
+                        <option>Заправка картриджей</option>
+                        <option>Восстановление данных</option>
+                        <option>Онлайн-касса</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Модель устройства</label><input class="form-control" type="text" name="device_model" placeholder="iPhone 14..."></div>
+            </div>
+            <div class="form-section-label">Неисправность</div>
+            <div class="form-group"><label>Нужная услуга</label><input class="form-control" type="text" name="service_type" placeholder="Замена экрана..."></div>
+            <div class="form-group"><label>Опишите проблему</label><textarea class="form-control" name="problem" rows="3"></textarea></div>
+            <div class="form-section-label">Дополнительно</div>
+            <div class="form-row">
+                <div class="form-group"><label>Срочность</label>
+                    <select class="form-control" name="urgency"><option value="normal">Обычная (1–3 дня)</option><option value="urgent">Срочно (день в день)</option></select>
+                </div>
+                <div class="form-group"><label>Гарантия?</label>
+                    <select class="form-control" name="has_warranty"><option value="0">Нет / не знаю</option><option value="1">Да, есть чек</option></select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Удобная дата *</label><input class="form-control" type="date" name="preferred_date" required></div>
+                <div class="form-group"><label>Удобное время *</label>
+                    <select class="form-control" name="preferred_time" required>
+                        <option value="">Выберите время</option>
+                        <option>09:00</option><option>10:00</option><option>11:00</option><option>12:00</option><option>13:00</option><option>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option><option>18:00</option><option>19:00</option><option>20:00</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;margin-top:4px;">Отправить заявку</button>
+        </form>
+    </div>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+// API объявлен в main.js
+let currentUser = null;
+
+document.getElementById('login-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const name = document.getElementById('login-name').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    const errEl = document.getElementById('login-err');
+    errEl.style.display = 'none';
+    try {
+        const res  = await fetch(`${API}/auth/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, password:pass}) });
+        const data = await res.json();
+        if (data.success && (data.user.role === 'director' || data.user.role === 'admin')) {
+            currentUser = data.user;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            showPanel();
+        } else {
+            errEl.style.display = 'block';
+            errEl.textContent = data.success ? 'Нет доступа к панели директора' : (data.message || 'Неверные данные');
+        }
+    } catch { errEl.style.display = 'block'; errEl.textContent = 'Ошибка соединения'; }
+});
+
+function showPanel() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dir-panel').style.display = 'block';
+    const nameSpan = document.getElementById('user-cabinet-name');
+    if (nameSpan) { nameSpan.style.display = 'inline'; nameSpan.textContent = currentUser.name.split(' ')[0]; }
+    const now = new Date();
+    const days   = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+    const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+    document.getElementById('dir-today').innerHTML = `<span>${days[now.getDay()]}</span>, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+    loadAll();
+    setInterval(loadAll, 60000);
+}
+
+async function loadAll() { await Promise.all([loadDashboard(), loadGantt(), loadNotifications()]); }
+
+async function loadDashboard() {
+    try {
+        const res = await fetch(`${API}/dashboard`);
+        const data = await res.json();
+        if (!data.success) return;
+        const d = data.data;
+        document.getElementById('kpi-total').textContent      = d.orders.total       || 0;
+        document.getElementById('kpi-inprogress').textContent = d.orders.in_progress  || 0;
+        document.getElementById('kpi-done-today').textContent = d.orders.done_today   || 0;
+        document.getElementById('kpi-new').textContent        = d.orders.new_count    || 0;
+        document.getElementById('kpi-overdue').textContent    = d.overdue             || 0;
+        document.getElementById('kpi-notifs').textContent     = d.unread_notifications || 0;
+        const ml = document.getElementById('masters-load');
+        ml.innerHTML = !d.masters.length
+            ? '<p style="text-align:center;color:var(--gray);font-size:13px;padding:20px;">Нет мастеров в системе</p>'
+            : d.masters.map(m => {
+                const pct = Math.min(100, m.load_pct || 0), danger = pct > 80;
+                return `<div class="load-item"><div class="load-item-head"><span class="load-item-name">${m.name}</span><span class="load-item-pct" style="color:${danger?'var(--primary)':'var(--accent)'}">${pct}%</span></div><div class="load-bar-wrap"><div class="load-bar-fill ${danger?'danger':''}" style="width:${pct}%"></div></div><div class="load-item-sub">Слотов: ${m.slots_total||0} · Выполнено: ${m.slots_done||0}</div></div>`;
+            }).join('');
+        const typeLabels = {soldering:'Паяльная',microscope:'Микроскоп',bench:'Стенд',other:'Прочее'};
+        const typeColors = {soldering:'#f59e0b',microscope:'#2563eb',bench:'#16a34a',other:'#9ca3af'};
+        const tbody = document.getElementById('equip-tbody');
+        tbody.innerHTML = !d.equipment.length
+            ? '<tr><td colspan="4" style="text-align:center;color:var(--gray);padding:20px;">Нет данных</td></tr>'
+            : d.equipment.map(eq => {
+                const pct = Math.min(100, eq.load_pct||0), color = typeColors[eq.type]||'#9ca3af';
+                return `<tr><td><strong>${eq.name}</strong></td><td><span class="equip-badge" style="background:${color}18;color:${color}">${typeLabels[eq.type]||eq.type}</span></td><td>${eq.usage_count||0}</td><td><div style="display:flex;align-items:center;gap:8px;"><div style="flex:1;background:var(--gray-light);border-radius:4px;height:6px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${color};border-radius:4px;"></div></div><span style="font-size:12px;font-weight:700;color:${color};min-width:32px;">${pct}%</span></div></td></tr>`;
+            }).join('');
+        loadOverdue();
+    } catch(err) { console.error(err); }
+}
+
+async function loadOverdue() {
+    const el = document.getElementById('overdue-list');
+    try {
+        const res = await fetch(`${API}/orders?role=director`); const data = await res.json();
+        if (!data.success) return;
+        const now = new Date();
+        const overdue = data.data.filter(o => o.deadline && new Date(o.deadline) < now && !['done','cancelled'].includes(o.status));
+        el.innerHTML = !overdue.length
+            ? '<div style="text-align:center;padding:20px;color:#16a34a;font-size:14px;font-weight:600;">✓ Просроченных заказов нет</div>'
+            : overdue.map(o => `<div class="overdue-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div class="overdue-item-text"><strong>#${o.id}</strong> ${o.client_name} — ${o.device_type}${o.device_model?' · '+o.device_model:''}<br><span style="font-size:12px;color:var(--gray);">Дедлайн: ${new Date(o.deadline).toLocaleDateString('ru-RU')}</span></div></div>`).join('');
+    } catch {}
+}
+
+const GANTT_START=9, GANTT_END=21, GANTT_HOURS=GANTT_END-GANTT_START;
+async function loadGantt() {
+    const container = document.getElementById('gantt-container');
+    try {
+        // Используем локальную дату браузера, не UTC
+        const todayDate = new Date();
+        const dd = String(todayDate.getDate()).padStart(2,'0');
+        const mm = String(todayDate.getMonth()+1).padStart(2,'0');
+        const today = todayDate.getFullYear() + '-' + mm + '-' + dd;
+        const res = await fetch(API + '/schedule?date=' + today); const data = await res.json();
+        if (!data.success || !data.data.length) {
+            container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gray);font-size:14px;">Расписание не построено.<br><span style="font-size:12px;">Нажмите «Пересчитать расписание»</span></div>';
+            return;
+        }
+        const byMaster = {};
+        for (const slot of data.data) {
+            if (!byMaster[slot.master_id]) byMaster[slot.master_id] = {name:slot.master_name, slots:[]};
+            byMaster[slot.master_id].slots.push(slot);
+        }
+        document.getElementById('algo-label').textContent = 'Johnson / SPT / EDD';
+
+        // Динамический диапазон шкалы — от первого до последнего слота
+        const allSlots = Object.values(byMaster).flatMap(m => m.slots);
+        const allMins = allSlots.flatMap(s => {
+            const st = new Date(s.start_time), en = new Date(s.end_time);
+            return [st.getHours()*60+st.getMinutes(), en.getHours()*60+en.getMinutes()];
+        });
+        const dynStart = Math.max(GANTT_START, Math.floor(Math.min(...allMins)/60) - 1);
+        const dynEnd   = Math.min(GANTT_END,   Math.ceil(Math.max(...allMins)/60)  + 1);
+        const dynHours = dynEnd - dynStart;
+
+        const nowTime=new Date(), nowMin=nowTime.getHours()*60+nowTime.getMinutes();
+        const nowPct = Math.min(100,Math.max(0,(nowMin-dynStart*60)/(dynHours*60)*100));
+        let html = '<div class="gantt-timeline">';
+        for (let h=dynStart; h<=dynEnd; h++) {
+            const pct = (h - dynStart) / dynHours * 100;
+            html += `<div class="gantt-hour" style="left:${pct}%">${h}:00</div>`;
+        }
+        html += '</div>';
+        for (const [,md] of Object.entries(byMaster)) {
+            html += `<div class="gantt-row"><div class="gantt-master-label" title="${md.name}">${md.name}</div><div class="gantt-track">`;
+            for (let h=dynStart; h<=dynEnd; h++) {
+                const tp = (h - dynStart) / dynHours * 100;
+                html += `<div class="gantt-tick" style="left:${tp}%"></div>`;
+            }
+            for (const slot of md.slots) {
+                const s=new Date(slot.start_time), e=new Date(slot.end_time);
+                const sm=s.getHours()*60+s.getMinutes();
+                const em=e.getHours()*60+e.getMinutes();
+                const lp=Math.max(0,(sm-dynStart*60)/(dynHours*60)*100);
+                const wp=Math.max(0.5,(em-sm)/(dynHours*60)*100);
+                const cls=slot.status==='done'?'done':(slot.urgency==='urgent'||slot.priority===1?'urgent':slot.stage);
+                const ti=`#${slot.order_id} ${slot.client_name}\n${slot.device_type}\n${slot.stage==='diagnosis'?'Диагностика':'Ремонт'}\n${fmt(s)} — ${fmt(e)}`;
+                const slotLabel = wp > 6 ? `#${slot.order_id} ${slot.client_name}` : (wp > 2.5 ? `#${slot.order_id}` : '');
+                html += `<div class="gantt-slot ${cls}" style="left:${lp}%;width:${wp}%" title="${esc(ti)}"><span class="gantt-slot-label">${slotLabel}</span></div>`;
+            }
+            if (nowPct>0&&nowPct<100) html += `<div class="gantt-now-line" style="left:${nowPct}%"></div>`;
+            html += '</div></div>';
+        }
+        container.innerHTML = html;
+    } catch(err) { console.error(err); container.innerHTML = '<div class="loading-state">Ошибка загрузки</div>'; }
+}
+
+function fmt(dt) {
+    return `${new Date(dt).getHours().toString().padStart(2,'0')}:${new Date(dt).getMinutes().toString().padStart(2,'0')}`;
+}
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function loadNotifications() {
+    const el = document.getElementById('notif-list');
+    try {
+        const res=await fetch(`${API}/notifications`); const data=await res.json();
+        if (!data.success||!data.data.length) { el.innerHTML='<p style="text-align:center;color:var(--gray);font-size:13px;padding:20px;">Уведомлений нет</p>'; return; }
+        const icons={order_ready:'✅',deadline_risk:'⚠️',urgent_added:'🔥',rescheduled:'🔄'};
+        const labels={order_ready:'Готов к выдаче',deadline_risk:'Риск просрочки',urgent_added:'Срочный заказ',rescheduled:'Перепланирование'};
+        el.innerHTML = data.data.slice(0,8).map(n => `<div class="notif-admin-item ${n.is_read?'':'unread'} type-${n.type}"><div class="notif-icon-big">${icons[n.type]||'🔔'}</div><div style="flex:1;"><div class="notif-msg">${n.message}</div><div class="notif-time">${labels[n.type]||n.type} · ${ago(new Date(n.created_at))}</div></div></div>`).join('');
+    } catch { el.innerHTML='<p style="text-align:center;color:var(--gray);font-size:13px;padding:20px;">Ошибка загрузки</p>'; }
+}
+
+function ago(date) {
+    const d=Math.floor((Date.now()-date)/1000);
+    if(d<60) return 'только что'; if(d<3600) return Math.floor(d/60)+' мин назад';
+    if(d<86400) return Math.floor(d/3600)+' ч назад'; return date.toLocaleDateString('ru-RU');
+}
+
+async function markAllRead() {
+    try { await fetch(`${API}/notifications/read`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids:'all'})}); loadNotifications(); loadDashboard(); } catch {}
+}
+
+async function buildSchedule() {
+    const btn=document.getElementById('build-btn'); btn.disabled=true;
+    btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12"/></svg> Рассчитываем...';
+    try {
+        const res=await fetch(`${API}/schedule/build`,{method:'POST'}); const data=await res.json();
+        if (data.success) { showToast(`✓ Расписание построено (${data.algorithm})${data.warnings?.length?` · ⚠️ ${data.warnings.length} рисков`:''}`); await loadAll(); }
+        else showToast(data.message||'Ошибка','error');
+    } catch { showToast('Ошибка соединения','error'); }
+    finally { btn.disabled=false; btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Пересчитать расписание'; }
+}
+
+(function init() {
+    const saved = JSON.parse(localStorage.getItem('currentUser')||'null');
+    if (saved && (saved.role==='director'||saved.role==='admin')) { currentUser=saved; showPanel(); }
+    else { document.getElementById('login-screen').style.display='flex'; }
+})();
+
+// ============================================
+// ВЫГРУЗКА ОТЧЁТА В EXCEL — ExcelJS
+// ============================================
+async function exportToExcel() {
+    try {
+        const today = new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+        const [dashRes, ordersRes] = await Promise.all([
+            fetch(API + '/dashboard'),
+            fetch(API + '/orders?role=director')
+        ]);
+        const dashData   = await dashRes.json();
+        const ordersData = await ordersRes.json();
+
+        if (!dashData.success || !ordersData.success) {
+            showToast('Ошибка загрузки данных', 'error');
+            return;
+        }
+
+        const d      = dashData.data;
+        const orders = ordersData.data;
+        const now    = new Date();
+        const statusLabels  = { new: 'Новая', in_progress: 'В работе', done: 'Выполнен', cancelled: 'Отменена' };
+        const urgencyLabels = { normal: 'Обычная', urgent: 'Срочно' };
+
+        const wb = new ExcelJS.Workbook();
+        wb.creator = 'БытСервис';
+        wb.created = new Date();
+
+        // ── Вспомогательные стили ──
+        const hdrFill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1e293b' } };
+        const blueFill  = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1a3a5c' } };
+        const redFill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFc0271e' } };
+        const evenFill  = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFf8fafc' } };
+        const oddFill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFffffff' } };
+        const thinBorder = {
+            top:    { style: 'thin', color: { argb: 'FFe2e8f0' } },
+            bottom: { style: 'thin', color: { argb: 'FFe2e8f0' } },
+            left:   { style: 'thin', color: { argb: 'FFe2e8f0' } },
+            right:  { style: 'thin', color: { argb: 'FFe2e8f0' } }
+        };
+        const whiteFont  = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFffffff' } };
+        const boldFont   = { name: 'Arial', size: 10, bold: true };
+        const normFont   = { name: 'Arial', size: 10 };
+        const titleFont  = { name: 'Arial', size: 14, bold: true, color: { argb: 'FF1e293b' } };
+        const grayFont   = { name: 'Arial', size: 10, color: { argb: 'FF64748b' } };
+
+        function styleRow(row, fill, font, border) {
+            row.eachCell({ includeEmpty: true }, cell => {
+                cell.fill   = fill;
+                cell.font   = font   || normFont;
+                cell.border = border || thinBorder;
+                cell.alignment = { vertical: 'middle', wrapText: false };
+            });
+        }
+
+        function sectionHeader(ws, text, cols) {
+            const row = ws.addRow([text]);
+            ws.mergeCells(row.number, 1, row.number, cols);
+            row.height = 22;
+            row.getCell(1).fill      = blueFill;
+            row.getCell(1).font      = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFffffff' } };
+            row.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+            return row;
+        }
+
+        function tableHeader(ws, headers, fills) {
+            const row = ws.addRow(headers);
+            row.height = 20;
+            row.eachCell({ includeEmpty: true }, (cell, colNum) => {
+                cell.fill      = fills || hdrFill;
+                cell.font      = whiteFont;
+                cell.border    = thinBorder;
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            });
+            return row;
+        }
+
+        // ════════════════════════════════
+        // ЛИСТ 1: СВОДКА
+        // ════════════════════════════════
+        const ws1 = wb.addWorksheet('Сводка');
+        ws1.columns = [
+            { width: 36 }, { width: 18 }, { width: 18 }, { width: 14 }
+        ];
+
+        // Заголовок
+        const titleRow = ws1.addRow(['СВОДНЫЙ ОТЧЁТ СЕРВИСНОГО ЦЕНТРА БЫТСЕРВИС']);
+        ws1.mergeCells(titleRow.number, 1, titleRow.number, 4);
+        titleRow.height = 28;
+        titleRow.getCell(1).font      = titleFont;
+        titleRow.getCell(1).alignment = { vertical: 'middle' };
+
+        const dateRow = ws1.addRow(['Дата формирования: ' + today]);
+        ws1.mergeCells(dateRow.number, 1, dateRow.number, 4);
+        dateRow.getCell(1).font = grayFont;
+
+        ws1.addRow([]);
+
+        // КPI
+        sectionHeader(ws1, 'КЛЮЧЕВЫЕ ПОКАЗАТЕЛИ', 4);
+        const kpiData = [
+            ['Всего заказов',              d.orders.total              || 0],
+            ['Новых заказов',              d.orders.new_count          || 0],
+            ['В работе',                   d.orders.in_progress        || 0],
+            ['Выполнено сегодня',          d.orders.done_today         || 0],
+            ['Всего выполнено',            d.orders.done_total         || 0],
+            ['Просрочено',                 d.overdue                   || 0],
+            ['Непрочитанных уведомлений',  d.unread_notifications      || 0],
+        ];
+        kpiData.forEach((item, i) => {
+            const row = ws1.addRow([item[0], '', item[1], '']);
+            row.height = 20;
+            row.getCell(1).font   = boldFont;
+            row.getCell(1).fill   = i % 2 === 0 ? evenFill : oddFill;
+            row.getCell(3).font   = { name: 'Arial', size: 12, bold: true, color: { argb: 'FF1e40af' } };
+            row.getCell(3).fill   = i % 2 === 0 ? evenFill : oddFill;
+            row.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
+            row.eachCell({ includeEmpty: true }, cell => { cell.border = thinBorder; });
+        });
+
+        ws1.addRow([]);
+
+        // Мастера
+        sectionHeader(ws1, 'ЗАГРУЗКА МАСТЕРОВ', 4);
+        tableHeader(ws1, ['Мастер', 'Слотов всего', 'Выполнено', 'Загрузка %']);
+        d.masters.forEach((m, i) => {
+            const pct  = m.load_pct || 0;
+            const row  = ws1.addRow([m.name, m.slots_total || 0, m.slots_done || 0, pct + '%']);
+            row.height = 18;
+            const fill = i % 2 === 0 ? evenFill : oddFill;
+            styleRow(row, fill);
+            row.getCell(1).font = boldFont;
+            row.getCell(4).font = { name: 'Arial', size: 10, bold: true,
+                color: { argb: pct > 80 ? 'FFc0271e' : 'FF16a34a' } };
+            row.getCell(4).alignment = { horizontal: 'center', vertical: 'middle' };
+        });
+
+        ws1.addRow([]);
+
+        // Оборудование
+        sectionHeader(ws1, 'ЗАГРУЗКА ОБОРУДОВАНИЯ', 4);
+        tableHeader(ws1, ['Оборудование', 'Тип', 'Использований', 'Загрузка %']);
+        d.equipment.forEach((e, i) => {
+            const pct  = e.load_pct || 0;
+            const row  = ws1.addRow([e.name, e.type || '—', e.usage_count || 0, pct + '%']);
+            row.height = 18;
+            styleRow(row, i % 2 === 0 ? evenFill : oddFill);
+            row.getCell(1).font = boldFont;
+            row.getCell(4).alignment = { horizontal: 'center', vertical: 'middle' };
+        });
+
+        // ════════════════════════════════
+        // ЛИСТ 2: ВСЕ ЗАКАЗЫ
+        // ════════════════════════════════
+        const ws2 = wb.addWorksheet('Заказы');
+        ws2.columns = [
+            { width: 6  }, { width: 18 }, { width: 16 }, { width: 16 },
+            { width: 16 }, { width: 20 }, { width: 14 }, { width: 12 },
+            { width: 10 }, { width: 14 }, { width: 14 }
+        ];
+
+        tableHeader(ws2, ['№','Клиент','Телефон','Устройство','Модель','Услуга','Статус','Срочность','Гарантия','Дедлайн','Создан']);
+
+        const statusColors = {
+            'Выполнен':  'FF16a34a',
+            'В работе':  'FFf59e0b',
+            'Новая':     'FF2563eb',
+            'Отменена':  'FF9ca3af',
+        };
+
+        orders.forEach((o, i) => {
+            const deadline = o.deadline   ? new Date(o.deadline).toLocaleDateString('ru-RU')   : '—';
+            const created  = o.created_at ? new Date(o.created_at).toLocaleDateString('ru-RU') : '—';
+            const status   = statusLabels[o.status]   || o.status;
+            const urgency  = urgencyLabels[o.urgency] || o.urgency;
+            const row = ws2.addRow([
+                o.id, o.client_name||'—', o.phone||'—', o.device_type||'—',
+                o.device_model||'—', o.service_type||'—',
+                status, urgency,
+                o.has_warranty ? 'Есть' : 'Нет',
+                deadline, created
+            ]);
+            row.height = 18;
+            styleRow(row, i % 2 === 0 ? evenFill : oddFill);
+            // Статус цветом
+            if (statusColors[status]) {
+                row.getCell(7).font = { name:'Arial', size:10, bold:true, color:{ argb: statusColors[status] } };
+            }
+            // Срочность красным
+            if (urgency === 'Срочно') {
+                row.getCell(8).font = { name:'Arial', size:10, bold:true, color:{ argb:'FFc0271e' } };
+            }
+        });
+
+        // ════════════════════════════════
+        // ЛИСТ 3: ПРОСРОЧЕННЫЕ
+        // ════════════════════════════════
+        const ws3 = wb.addWorksheet('Просроченные');
+        ws3.columns = [
+            { width: 6 }, { width: 18 }, { width: 16 },
+            { width: 24 }, { width: 14 }, { width: 14 }, { width: 20 }
+        ];
+
+        const overdueOrders = orders.filter(o =>
+            o.deadline && new Date(o.deadline) < now && !['done','cancelled'].includes(o.status)
+        );
+
+        tableHeader(ws3, ['№','Клиент','Телефон','Устройство','Статус','Дедлайн','Просрочено (дней)'], redFill);
+
+        overdueOrders.forEach((o, i) => {
+            const dl       = new Date(o.deadline);
+            const diffDays = Math.ceil((now - dl) / (1000 * 60 * 60 * 24));
+            const row = ws3.addRow([
+                o.id, o.client_name||'—', o.phone||'—',
+                o.device_type + (o.device_model ? ' ' + o.device_model : ''),
+                statusLabels[o.status] || o.status,
+                dl.toLocaleDateString('ru-RU'),
+                diffDays
+            ]);
+            row.height = 18;
+            styleRow(row, i % 2 === 0 ? evenFill : oddFill);
+            row.getCell(7).font      = { name:'Arial', size:10, bold:true, color:{ argb:'FFc0271e' } };
+            row.getCell(7).alignment = { horizontal:'center', vertical:'middle' };
+        });
+
+        if (!overdueOrders.length) {
+            const row = ws3.addRow(['Просроченных заказов нет']);
+            ws3.mergeCells(row.number, 1, row.number, 7);
+            row.getCell(1).font      = { name:'Arial', size:11, bold:true, color:{ argb:'FF16a34a' } };
+            row.getCell(1).alignment = { horizontal:'center', vertical:'middle' };
+            row.height = 24;
+        }
+
+        // ── Скачиваем ──
+        const buf     = await wb.xlsx.writeBuffer();
+        const blob    = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url     = URL.createObjectURL(blob);
+        const a       = document.createElement('a');
+        a.href        = url;
+        a.download    = 'bytservice_report_' + new Date().toLocaleDateString('ru-RU').replace(/\./g,'-') + '.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('Отчёт выгружен успешно!');
+
+    } catch(err) {
+        console.error(err);
+        showToast('Ошибка при выгрузке отчёта', 'error');
+    }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>БытСервис</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .reviews-hero {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+            padding: 60px 0;
+        }
+        .reviews-hero h1 { font-size: 36px; margin-bottom: 8px; }
+        .reviews-hero p { color: rgba(255,255,255,0.7); }
+        .reviews-stats { display: flex; gap: 32px; margin-top: 24px; }
+        .reviews-stat { text-align: center; }
+        .reviews-stat-num { font-size: 40px; font-weight: 800; color: #e63329; font-family: 'Montserrat',sans-serif; line-height: 1; }
+        .reviews-stat-label { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+
+        .reviews-grid-page { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; width: 100%; box-sizing: border-box; }
+        @media (max-width:900px) { .reviews-grid-page { grid-template-columns: repeat(2,1fr); } }
+        @media (max-width:580px) { .reviews-grid-page { grid-template-columns: 1fr; } }
+
+        .review-card-page {
+            background: white; border-radius: 16px; padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.07); border: 1px solid #f0f0f0;
+            transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column;
+            min-width: 0; box-sizing: border-box;
+        }
+        .review-card-page:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+        .review-top-page { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+        .review-avatar-page {
+            width: 48px; height: 48px; border-radius: 50%;
+            background: linear-gradient(135deg, #e63329, #c0271e);
+            color: white; font-size: 20px; font-weight: 700; font-family: 'Montserrat',sans-serif;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .review-name-page { font-weight: 700; font-size: 15px; font-family: 'Montserrat',sans-serif; }
+        .review-stars-page { color: #f59e0b; font-size: 17px; margin-top: 2px; }
+        .review-text-page { color: #374151; font-size: 14px; line-height: 1.65; flex: 1; word-break: break-word; overflow-wrap: break-word; }
+        .review-foot-page {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 16px; padding-top: 14px; border-top: 1px solid #f3f4f6;
+        }
+        .review-device-page { background: #f3f4f6; color: #6b7280; font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+        .review-date-page { font-size: 12px; color: #9ca3af; }
+
+        .reviews-loading-page { grid-column: 1/-1; text-align: center; padding: 60px; color: #9ca3af; }
+        .spinner { width: 36px; height: 36px; border: 3px solid #e5e7eb; border-top-color: #e63329; border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .reviews-empty-page { grid-column: 1/-1; text-align: center; padding: 60px; color: #9ca3af; font-size: 15px; }
+
+        .review-form-section { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); max-width: 680px; margin: 0 auto; }
+        .review-form-section h3 { font-size: 24px; margin-bottom: 6px; }
+        .review-form-section > p { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+        .rating-label { font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 10px; display: block; }
+        .star-row-page { display: flex; gap: 4px; margin-bottom: 20px; align-items: center; }
+        #star-row-page .star-btn-page {
+            font-size: 36px;
+            color: #d1d5db;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.15s;
+            line-height: 1;
+            padding: 0 2px;
+            -webkit-text-stroke: 0;
+        }
+        .rating-label-text { font-size: 14px; color: #6b7280; margin-left: 10px; font-weight: 600; }
+        .form-row-review { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width:560px) { .form-row-review { grid-template-columns: 1fr; } }
+        .form-group-review { margin-bottom: 16px; }
+        .form-group-review label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+        .submit-btn-review {
+            display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px;
+            background: #e63329; color: white; border: none; border-radius: 10px;
+            font-size: 15px; font-weight: 700; font-family: 'Montserrat',sans-serif;
+            cursor: pointer; transition: background 0.2s; margin-top: 4px;
+        }
+        .submit-btn-review:hover { background: #c0271e; }
+        .submit-btn-review:disabled { background: #9ca3af; cursor: not-allowed; }
+        .form-notice-review { font-size: 12px; color: #9ca3af; text-align: center; margin-top: 12px; }
+        .pending-notice {
+            background: #fef3c7; border: 1px solid #f59e0b; border-radius: 10px;
+            padding: 14px 18px; display: flex; align-items: center; gap: 10px;
+            margin-bottom: 24px; font-size: 13px; color: #92400e;
+        }
+        textarea.form-control { resize: vertical; min-height: 110px; }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="container">
+        <div class="topbar-left"><span class="dot"></span> Работаем 24/7</div>
+        <div class="topbar-right">
+            <a href="contacts.html">Оренбург, Туркестанская, 2А</a>
+            <a href="contacts.html">Оренбург, Салмышская, 66/2</a>
+            <a href="contacts.html">Оренбург, Брестская, 5/2</a>
+        </div>
+    </div>
+</div>
+
+<header>
+    <div class="container">
+        <a href="../index.html" class="logo">
+            <div class="logo-icon">Б</div>
+            <div>
+                <div class="logo-text"><span>Быт</span>Сервис</div>
+                <div class="logo-sub">Ремонт электроники и бытовой техники</div>
+            </div>
+        </a>
+        <nav>
+            <a href="../index.html">Главная</a>
+            <a href="services.html">Услуги</a>
+            <a href="prices.html">Цены</a>
+            <a href="reviews.html" class="active">Отзывы</a>
+            <a href="contacts.html">Контакты</a>
+            <a href="#" id="user-cabinet-btn" class="user-icon-link" title="Личный кабинет">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span id="user-cabinet-name" style="display:none; font-size:14px; font-weight:600; margin-left:6px;"></span>
+            </a>
+        </nav>
+        <div class="header-actions">
+            <a href="tel:+73532507030" class="phone-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 5a2 2 0 0 1 1.95-2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.09a16 16 0 0 0 6 6l.9-.9a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                +7 (3532) 50-70-30
+            </a>
+            <button class="btn btn-primary" data-modal="appointment-modal">Записаться</button>
+            <button class="burger"><span></span><span></span><span></span></button>
+        </div>
+    </div>
+</header>
+
+<div class="reviews-hero">
+    <div class="container">
+        <div style="font-size:13px; color: rgba(255,255,255,0.5); margin-bottom:14px;">
+            <a href="../index.html" style="color: rgba(255,255,255,0.5);">Главная</a> &rarr; Отзывы
+        </div>
+        <h1>Отзывы клиентов</h1>
+        <p>Мы дорожим каждым мнением — ваш опыт помогает нам становиться лучше</p>
+        <div class="reviews-stats">
+            <div class="reviews-stat">
+                <div class="reviews-stat-num" id="stat-count">—</div>
+                <div class="reviews-stat-label">Отзывов</div>
+            </div>
+            <div class="reviews-stat">
+                <div class="reviews-stat-num" id="stat-rating">—</div>
+                <div class="reviews-stat-label">Средняя оценка</div>
+            </div>
+            <div class="reviews-stat">
+                <div class="reviews-stat-num" id="stat-top-rating">—</div>
+                <div class="reviews-stat-label">Чаще всего ставят</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section>
+    <div class="container">
+        <div class="reviews-grid-page" id="reviews-container">
+            <div class="reviews-loading-page">
+                <div class="spinner"></div>
+                Загружаем отзывы…
+            </div>
+        </div>
+    </div>
+</section>
+
+<section style="background:var(--bg);padding:56px 0;">
+    <div class="container">
+        <div class="review-form-section">
+            <h3>Оставить отзыв</h3>
+            <p>Расскажите о своём опыте — это поможет другим клиентам</p>
+            <div class="pending-notice">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Большинство отзывов публикуются сразу. Отзывы с подозрительным содержимым проходят проверку
+            </div>
+            <form id="review-form-page" novalidate>
+                <div class="form-row-review">
+                    <div class="form-group-review">
+                        <label>Ваше имя *</label>
+                        <input class="form-control" type="text" name="client_name" placeholder="Иван Иванов" required>
+                    </div>
+                    <div class="form-group-review">
+                        <label>Устройство</label>
+                        <select class="form-control" name="device_type">
+                            <option value="">Выберите устройство</option>
+                            <option value="Смартфон">Смартфон</option>
+                            <option value="Планшет">Планшет</option>
+                            <option value="Ноутбук">Ноутбук</option>
+                            <option value="Компьютер">Компьютер</option>
+                            <option value="Монитор">Монитор</option>
+                            <option value="Телевизор">Телевизор</option>
+                            <option value="Техника Apple">Техника Apple</option>
+                            <option value="Принтер">Принтер</option>
+                            <option value="МФУ / Копир">МФУ / Копир</option>
+                            <option value="Фотоаппарат">Фотоаппарат</option>
+                            <option value="Игровая консоль">Игровая консоль</option>
+                            <option value="Микроволновка">Микроволновка</option>
+                            <option value="Кофемашина">Кофемашина</option>
+                            <option value="Стиральная машина">Стиральная машина</option>
+                            <option value="Холодильник">Холодильник</option>
+                            <option value="Кондиционер">Кондиционер</option>
+                            <option value="Робот-пылесос">Робот-пылесос</option>
+                            <option value="Электросамокат">Электросамокат</option>
+                            <option value="Электроинструмент">Электроинструмент</option>
+                            <option value="Садовая техника">Садовая техника</option>
+                            <option value="Восстановление данных">Восстановление данных</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group-review">
+                    <span class="rating-label">Оценка *</span>
+                    <div class="star-row-page" id="star-row-page">
+                        <button type="button" class="star-btn-page" data-val="1">★</button>
+                        <button type="button" class="star-btn-page" data-val="2">★</button>
+                        <button type="button" class="star-btn-page" data-val="3">★</button>
+                        <button type="button" class="star-btn-page" data-val="4">★</button>
+                        <button type="button" class="star-btn-page" data-val="5">★</button>
+                        <span class="rating-label-text" id="rating-label-text">Отлично!</span>
+                    </div>
+                </div>
+                <div class="form-group-review">
+                    <label>Ваш отзыв *</label>
+                    <textarea class="form-control" name="text" rows="4" placeholder="Опишите ваш опыт обращения в наш сервис…" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn-review" id="review-submit-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    Отправить отзыв
+                </button>
+                <p class="form-notice-review">Нажимая кнопку, вы соглашаетесь на публикацию отзыва</p>
+            </form>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="logo"><div class="logo-icon">Б</div><div><div class="logo-text" style="color:white;"><span>Быт</span>Сервис</div></div></div>
+                <p>Профессиональный ремонт электроники и бытовой техники в Оренбурге. Работаем с 2016 года.</p>
+            </div>
+            <div class="footer-col"><h4>Услуги</h4><ul>
+                <li><a href="services.html">Ремонт смартфонов и планшетов</a></li>
+                <li><a href="services.html">Ремонт ноутбуков и компьютеров</a></li>
+                <li><a href="services.html">Ремонт телевизоров и мониторов</a></li>
+                <li><a href="services.html">Ремонт бытовой техники</a></li>
+                <li><a href="services.html">Ремонт садовой техники</a></li>
+                <li><a href="services.html">Восстановление данных</a></li>
+            </ul></div>
+            <div class="footer-col"><h4>Компания</h4><ul>
+                <li><a href="reviews.html">Отзывы</a></li>
+                <li><a href="prices.html">Цены</a></li>
+                <li><a href="contacts.html">Контакты</a></li>
+            </ul></div>
+            <div class="footer-col"><h4>Контакты</h4><ul>
+                <li><a href="tel:+73532507030">+7 (3532) 50-70-30</a></li>
+                <li><a href="contacts.html">Туркестанская, 2А</a></li>
+                <li><a href="contacts.html">Салмышская, 66/2</a></li>
+                <li><a href="contacts.html">Брестская, 5/2</a></li>
+            </ul></div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 БытСервис. Все права защищены.</span>
+            <span>Оренбург, работаем 24/7</span>
+        </div>
+    </div>
+</footer>
+
+<div class="modal-overlay" id="appointment-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Онлайн-запись на ремонт</h3>
+            <button class="modal-close">&#10005;</button>
+        </div>
+                <form class="modal-form" id="appointment-form">
+            <!-- Шаг 1: Контакты -->
+            <div class="form-section-label">Контактная информация</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Ваше имя *</label>
+                    <input class="form-control" type="text" name="client_name" placeholder="Иван Иванов" required>
+                </div>
+                <div class="form-group">
+                    <label>Телефон *</label>
+                    <input class="form-control" type="tel" name="phone" placeholder="+7 (___) ___-__-__" required>
+                </div>
+            </div>
+
+            <!-- Шаг 2: Устройство -->
+            <div class="form-section-label">Устройство</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Тип устройства *</label>
+                    <select class="form-control" name="device_type" required>
+                        <option value="">Выберите тип</option>
+                        <option>Смартфон</option>
+                        <option>Планшет</option>
+                        <option>Ноутбук</option>
+                        <option>Компьютер</option>
+                        <option>Монитор</option>
+                        <option>Телевизор</option>
+                        <option>Техника Apple</option>
+                        <option>Принтер</option>
+                        <option>МФУ / Копир</option>
+                        <option>Фотоаппарат</option>
+                        <option>Игровая консоль</option>
+                        <option>Микроволновка</option>
+                        <option>Кофемашина</option>
+                        <option>Стиральная машина</option>
+                        <option>Холодильник</option>
+                        <option>Кондиционер</option>
+                        <option>Робот-пылесос</option>
+                        <option>Электросамокат</option>
+                        <option>Электроинструмент</option>
+                        <option>Снегоочиститель</option>
+                        <option>Мотокультиватор</option>
+                        <option>Мотопомпа</option>
+                        <option>Бензопила / Электропила</option>
+                        <option>Триммер</option>
+                        <option>Генератор</option>
+                        <option>Заправка картриджей</option>
+                        <option>Восстановление данных</option>
+                        <option>Онлайн-касса</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Модель устройства</label>
+                    <input class="form-control" type="text" name="device_model" placeholder="iPhone 14, Samsung Galaxy S23...">
+                </div>
+            </div>
+
+            <div class="form-section-label">Неисправность</div>
+            <div class="form-group">
+                <label>Нужная услуга</label>
+                <input class="form-control" type="text" name="service_type" placeholder="Замена экрана, чистка от пыли...">
+            </div>
+            <div class="form-group">
+                <label>Опишите проблему подробнее</label>
+                <textarea class="form-control" name="problem" rows="3" placeholder="Треснул экран после падения, не реагирует на касание в нижней части..."></textarea>
+            </div>
+
+
+            <div class="form-section-label">Дополнительно</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Срочность</label>
+                    <select class="form-control" name="urgency">
+                        <option value="normal">Обычная (1–3 дня)</option>
+                        <option value="urgent">Срочно (день в день)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Устройство на гарантии?</label>
+                    <select class="form-control" name="has_warranty">
+                        <option value="0">Нет / не знаю</option>
+                        <option value="1">Да, есть чек/гарантия</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Удобная дата *</label>
+                    <input class="form-control" type="date" name="preferred_date" required>
+                </div>
+                <div class="form-group">
+                    <label>Удобное время *</label>
+                    <select class="form-control" name="preferred_time" required>
+                        <option value="">Выберите время</option>
+                        <option>09:00</option><option>10:00</option><option>11:00</option>
+                        <option>12:00</option><option>13:00</option><option>14:00</option>
+                        <option>15:00</option><option>16:00</option><option>17:00</option>
+                        <option>18:00</option><option>19:00</option><option>20:00</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:4px;">Отправить заявку</button>
+        </form>
+
+    </div>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+(function() {
+const API_REVIEWS = 'http://localhost:4000/api';
+const RATING_LABELS = ['','Плохо','Не очень','Нормально','Хорошо','Отлично!'];
+
+// Звёзды
+let selectedRating = 5;
+const starBtnsPage = document.querySelectorAll('#star-row-page .star-btn-page');
+const ratingLabelEl = document.getElementById('rating-label-text');
+
+function paintStars(val) {
+    starBtnsPage.forEach((s, i) => {
+        s.style.color = i < val ? '#f59e0b' : '#d1d5db';
+        s.style.transform = 'scale(1)';
+    });
+    ratingLabelEl.textContent = RATING_LABELS[val] || '';
+}
+paintStars(selectedRating);
+
+starBtnsPage.forEach(btn => {
+    const val = +btn.dataset.val;
+    btn.addEventListener('mouseenter', () => {
+        starBtnsPage.forEach((s, i) => {
+            s.style.color = i < val ? '#f59e0b' : '#d1d5db';
+        });
+        btn.style.transform = 'scale(1.2)';
+        ratingLabelEl.textContent = RATING_LABELS[val] || '';
+    });
+    btn.addEventListener('mouseleave', () => {
+        paintStars(selectedRating);
+    });
+    btn.addEventListener('click', () => {
+        selectedRating = val;
+        paintStars(selectedRating);
+    });
+});
+
+// Форматирование даты
+function fmtDate(str) {
+    return new Date(str).toLocaleDateString('ru-RU', { day:'numeric', month:'long', year:'numeric' });
+}
+function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Загрузка отзывов
+async function loadReviewsPage() {
+    const container = document.getElementById('reviews-container');
+    try {
+        const res = await fetch(`${API_REVIEWS}/reviews`);
+        const result = await res.json();
+
+        if (!result.success || !result.data.length) {
+            document.getElementById('stat-count').textContent = '0';
+            document.getElementById('stat-rating').textContent = '—';
+            container.innerHTML = `<div class="reviews-empty-page"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.3;display:block;margin:0 auto 16px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Отзывов пока нет. Станьте первым!</div>`;
+            return;
+        }
+
+        const reviews = result.data;
+        const avg = (reviews.reduce((s,r) => s + r.rating, 0) / reviews.length).toFixed(1);
+        document.getElementById('stat-count').textContent = reviews.length;
+        document.getElementById('stat-rating').textContent = avg + ' ★';
+
+        // Считаем самый частый рейтинг
+        const ratingCounts = [0,0,0,0,0,0];
+        reviews.forEach(r => { if (r.rating >= 1 && r.rating <= 5) ratingCounts[r.rating]++; });
+        let topRating = 5;
+        let topCount = 0;
+        for (let i = 1; i <= 5; i++) {
+            if (ratingCounts[i] > topCount) { topCount = ratingCounts[i]; topRating = i; }
+        }
+        const topEl = document.getElementById('stat-top-rating');
+        if (topEl) topEl.textContent = '★'.repeat(topRating) + '☆'.repeat(5 - topRating);
+
+        container.innerHTML = reviews.map(r => `
+            <div class="review-card-page">
+                <div class="review-top-page">
+                    <div class="review-avatar-page">${esc(r.client_name[0]).toUpperCase()}</div>
+                    <div>
+                        <div class="review-name-page">${esc(r.client_name)}</div>
+                        <div class="review-stars-page">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+                    </div>
+                </div>
+                <p class="review-text-page">${esc(r.text)}</p>
+                <div class="review-foot-page">
+                    ${r.device_type ? `<span class="review-device-page">${esc(r.device_type)}</span>` : '<span></span>'}
+                    <span class="review-date-page">${fmtDate(r.created_at)}</span>
+                </div>
+            </div>
+        `).join('');
+    } catch {
+        container.innerHTML = `<div class="reviews-empty-page">Не удалось загрузить отзывы. Проверьте соединение с сервером.</div>`;
+    }
+}
+loadReviewsPage();
+
+// Отправка отзыва
+document.getElementById('review-form-page').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const nameEl = form.querySelector('[name="client_name"]');
+    const textEl = form.querySelector('[name="text"]');
+    const deviceEl = form.querySelector('[name="device_type"]');
+    const btn = document.getElementById('review-submit-btn');
+
+    [nameEl, textEl].forEach(el => el.classList.remove('error-border'));
+
+    if (nameEl.value.trim().length < 2) {
+        nameEl.classList.add('error-border'); nameEl.focus();
+        showToast('Введите ваше имя (минимум 2 символа)', 'error'); return;
+    }
+    if (textEl.value.trim().length < 10) {
+        textEl.classList.add('error-border'); textEl.focus();
+        showToast('Напишите отзыв (минимум 10 символов)', 'error'); return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Отправляем…';
+
+    try {
+        const res = await fetch(`${API_REVIEWS}/reviews`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                client_name: nameEl.value.trim(),
+                rating: selectedRating,
+                text: textEl.value.trim(),
+                device_type: deviceEl.value || null
+            })
+        });
+        const result = await res.json();
+        if (result.success) {
+            showToast(result.message || 'Отзыв отправлен! Спасибо 🎉');
+            form.reset();
+            selectedRating = 5;
+            paintStars(selectedRating);
+            // Если отзыв одобрен автоматически — сразу обновляем список
+            if (result.auto_approved) {
+                setTimeout(loadReviewsPage, 500);
+            }
+        } else {
+            showToast(result.message || 'Ошибка при отправке', 'error');
+        }
+    } catch {
+        showToast('Ошибка соединения с сервером', 'error');
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Отправить отзыв';
+});
+})();
+</script>
+</body>
+</html>

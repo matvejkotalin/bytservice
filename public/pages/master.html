@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>БытСервис — Очередь мастера</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .master-page-header {
+            background: linear-gradient(135deg, var(--secondary) 0%, #16213e 60%, #0f3460 100%);
+            color: white; padding: 40px 0;
+        }
+        .master-page-header h1 { font-size: 28px; margin-bottom: 6px; }
+        .master-page-header p  { color: rgba(255,255,255,0.6); font-size: 14px; }
+        .master-breadcrumb { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 12px; }
+        .master-breadcrumb a { color: rgba(255,255,255,0.4); }
+        .master-wrap { padding: 32px 0 60px; flex: 1; }
+
+        /* Верхняя строка */
+        .master-toprow {
+            display: flex; align-items: center;
+            justify-content: space-between; gap: 12px;
+            margin-bottom: 24px; flex-wrap: wrap;
+        }
+
+        /* Статистика */
+        .master-stats { display: flex; gap: 14px; flex-wrap: wrap; }
+        .mstat {
+            background: white; border-radius: var(--radius);
+            padding: 16px 20px; text-align: center;
+            box-shadow: var(--shadow); min-width: 80px;
+        }
+        .mstat-num {
+            font-size: 28px; font-weight: 800; line-height: 1;
+            font-family: "Montserrat", sans-serif;
+            color: var(--accent);
+        }
+        .mstat-num.green { color: #16a34a; }
+        .mstat-num.orange { color: #f59e0b; }
+        .mstat-label { font-size: 11px; color: var(--gray); margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+
+        /* Прогресс дня */
+        .day-progress {
+            background: white; border-radius: var(--radius);
+            padding: 16px 20px; margin-bottom: 24px;
+            box-shadow: var(--shadow);
+            display: flex; align-items: center; gap: 14px;
+        }
+        .day-progress-label { font-size: 13px; color: var(--gray); font-weight: 600; white-space: nowrap; }
+        .day-progress-bar-wrap { flex: 1; background: var(--gray-light); border-radius: 6px; height: 8px; overflow: hidden; }
+        .day-progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #60a5fa); border-radius: 6px; transition: width .5s; }
+        .day-progress-time { font-size: 15px; font-weight: 800; color: var(--text); white-space: nowrap; }
+
+        /* Заголовок секции */
+        .section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+        .section-head h2 { font-size: 17px; font-weight: 700; color: var(--text); }
+        .section-badge {
+            background: var(--accent); color: white;
+            border-radius: 20px; padding: 2px 10px;
+            font-size: 12px; font-weight: 700;
+        }
+
+        /* Кнопка обновить */
+        .btn-refresh-master {
+            background: white; border: 1.5px solid var(--gray-light);
+            color: var(--text); padding: 9px 16px; border-radius: var(--radius-sm);
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 6px;
+            transition: all var(--transition);
+        }
+        .btn-refresh-master:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Карточка заказа */
+        .queue-list { display: flex; flex-direction: column; gap: 16px; }
+
+        .order-slot {
+            background: white; border-radius: var(--radius);
+            box-shadow: var(--shadow); overflow: hidden;
+            transition: box-shadow var(--transition), transform .15s;
+            border-left: 4px solid var(--accent);
+        }
+        .order-slot:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+        .order-slot.urgent { border-left-color: var(--primary); }
+        .order-slot.done-slot { border-left-color: #16a34a; opacity: .75; }
+
+        .order-slot-inner { padding: 22px 24px; }
+
+        /* Голова карточки */
+        .slot-head {
+            display: flex; align-items: flex-start;
+            justify-content: space-between; gap: 12px; margin-bottom: 16px;
+        }
+        .slot-head-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .slot-num {
+            font-size: 13px; font-weight: 800; color: var(--gray);
+            background: var(--bg); padding: 3px 9px; border-radius: 6px;
+        }
+        .slot-num span { color: var(--text); }
+
+        .badge-urgent {
+            background: rgba(230,51,41,0.1); color: var(--primary);
+            font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .badge-done {
+            background: rgba(22,163,74,0.1); color: #16a34a;
+            font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+        }
+
+        /* Время */
+        .slot-time {
+            background: rgba(37,99,235,0.08); color: var(--accent);
+            border-radius: var(--radius-sm); padding: 6px 14px;
+            font-size: 13px; font-weight: 700; white-space: nowrap;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .slot-time.overdue { background: rgba(230,51,41,0.08); color: var(--primary); }
+
+        /* Тело карточки */
+        .slot-body {
+            display: grid; grid-template-columns: 1fr 1fr 1fr;
+            gap: 14px; margin-bottom: 14px;
+        }
+        @media (max-width: 700px) { .slot-body { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 480px) { .slot-body { grid-template-columns: 1fr; } }
+
+        .slot-field { display: flex; flex-direction: column; gap: 2px; }
+        .slot-label {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .5px; color: var(--gray);
+        }
+        .slot-value { font-size: 14px; color: var(--text); font-weight: 500; }
+
+        /* Проблема */
+        .slot-problem {
+            background: var(--bg); border-left: 3px solid var(--accent);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            padding: 10px 14px; font-size: 13px; color: var(--text);
+            margin-bottom: 16px; line-height: 1.5;
+        }
+        .slot-problem.urgent-border { border-left-color: var(--primary); }
+
+        /* Оборудование */
+        .slot-equip {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(245,158,11,0.1); color: #92400e;
+            border-radius: var(--radius-sm); padding: 5px 12px;
+            font-size: 12px; font-weight: 600; margin-bottom: 16px;
+        }
+
+        /* Кнопка выполнено */
+        .slot-foot { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+
+        .btn-complete {
+            background: #16a34a; color: white; border: none;
+            padding: 10px 22px; border-radius: var(--radius-sm);
+            font-size: 14px; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+            transition: background var(--transition), transform .15s;
+            font-family: "Montserrat", sans-serif;
+        }
+        .btn-complete:hover { background: #15803d; transform: scale(1.02); }
+        .btn-complete:disabled { background: var(--gray); cursor: not-allowed; transform: none; }
+
+        /* Пустая очередь */
+        .empty-queue {
+            text-align: center; padding: 60px 20px;
+            background: white; border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        .empty-queue-icon {
+            width: 64px; height: 64px; background: rgba(22,163,74,0.1);
+            border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; margin: 0 auto 16px;
+        }
+        .empty-queue h3 { font-size: 18px; color: var(--text); margin-bottom: 6px; }
+        .empty-queue p { color: var(--gray); font-size: 14px; }
+
+        /* Экран входа */
+        .master-auth-screen {
+            flex: 1; display: flex; align-items: center;
+            justify-content: center; padding: 40px 20px;
+        }
+        .master-auth-box {
+            background: white; border-radius: 20px;
+            padding: 40px; width: 100%; max-width: 380px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .loading-state { text-align: center; padding: 50px; color: var(--gray); font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="container">
+        <div class="topbar-left"><span class="dot"></span> Работаем 24/7</div>
+        <div class="topbar-right">
+            <a href="contacts.html">Оренбург, Туркестанская, 2А</a>
+            <a href="contacts.html">Оренбург, Салмышская, 66/2</a>
+            <a href="contacts.html">Оренбург, Брестская, 5/2</a>
+        </div>
+    </div>
+</div>
+
+<header>
+    <div class="container">
+        <a href="../index.html" class="logo">
+            <div class="logo-icon">Б</div>
+            <div>
+                <div class="logo-text"><span>Быт</span>Сервис</div>
+                <div class="logo-sub">Ремонт электроники и бытовой техники</div>
+            </div>
+        </a>
+        <nav>
+            <a href="../index.html">Главная</a>
+            <a href="services.html">Услуги</a>
+            <a href="prices.html">Цены</a>
+            <a href="reviews.html">Отзывы</a>
+            <a href="contacts.html">Контакты</a>
+            <a href="#" id="user-cabinet-btn" class="user-icon-link" title="Личный кабинет">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span id="user-cabinet-name" style="display:none; font-size:14px; font-weight:600; margin-left:6px;"></span>
+            </a>
+        </nav>
+        <div class="header-actions">
+            <a href="tel:+73532507030" class="phone-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 5a2 2 0 0 1 1.95-2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.09a16 16 0 0 0 6 6l.9-.9a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+                +7 (3532) 50-70-30
+            </a>
+            <button class="btn btn-primary" data-modal="appointment-modal">Записаться</button>
+            <button class="burger"><span></span><span></span><span></span></button>
+        </div>
+    </div>
+</header>
+
+<!-- Экран входа -->
+<div id="login-screen" style="display:none; flex:1;">
+    <div class="master-auth-screen">
+        <div class="master-auth-box">
+            <h2 style="text-align:center; margin-bottom:8px;">Вход для мастера</h2>
+            <p style="text-align:center; color:var(--gray); font-size:14px; margin-bottom:24px;">Введите данные учётной записи</p>
+            <form id="login-form" class="modal-form">
+                <div class="form-group">
+                    <label>Имя пользователя</label>
+                    <input class="form-control" type="text" id="login-name" placeholder="Имя мастера" required>
+                </div>
+                <div class="form-group" style="margin-top:14px;">
+                    <label>Пароль</label>
+                    <input class="form-control" type="password" id="login-pass" placeholder="••••••••" required>
+                </div>
+                <p id="login-err" style="color:var(--primary);font-size:13px;display:none;margin-top:8px;text-align:center;"></p>
+                <button type="submit" class="btn btn-primary" style="width:100%;margin-top:20px;">Войти</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Основная панель -->
+<div id="master-panel" style="display:none;">
+
+    <div class="master-page-header">
+        <div class="container">
+            <div class="master-breadcrumb"><a href="../index.html">Главная</a> &rarr; Панель мастера</div>
+            <h1 id="master-header-name">Панель мастера</h1>
+            <p>Ваша очередь заказов на сегодня</p>
+            <!-- Индикатор SSE -->
+            <div style="display:flex; align-items:center; gap:7px; margin-top:10px;">
+                <span id="sse-dot" style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;transition:background .4s;"></span>
+                <span id="sse-label" style="font-size:12px;color:rgba(255,255,255,0.55);">Подключение...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Баннер мгновенного обновления -->
+    <div id="update-banner" style="
+        position:fixed; top:80px; left:50%; transform:translateX(-50%) translateY(-10px);
+        background:#1e293b; color:white; padding:10px 22px; border-radius:8px;
+        font-size:13px; font-weight:600; z-index:9999;
+        opacity:0; transition:opacity .3s, transform .3s;
+        box-shadow:0 4px 16px rgba(0,0,0,0.25); white-space:nowrap;
+    "></div>
+
+    <div class="master-wrap">
+        <div class="container">
+
+            <!-- Верхняя строка -->
+            <div class="master-toprow">
+                <div class="master-stats">
+                    <div class="mstat">
+                        <div class="mstat-num" id="stat-total">—</div>
+                        <div class="mstat-label">Всего</div>
+                    </div>
+                    <div class="mstat">
+                        <div class="mstat-num orange" id="stat-pending">—</div>
+                        <div class="mstat-label">В очереди</div>
+                    </div>
+                    <div class="mstat">
+                        <div class="mstat-num green" id="stat-done">—</div>
+                        <div class="mstat-label">Готово</div>
+                    </div>
+                </div>
+                <button class="btn-refresh-master" onclick="loadQueue()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                    </svg>
+                    Обновить
+                </button>
+            </div>
+
+            <!-- Прогресс дня -->
+            <div class="day-progress">
+                <span class="day-progress-label">Рабочий день</span>
+                <div class="day-progress-bar-wrap">
+                    <div class="day-progress-bar-fill" id="day-progress-bar" style="width:0%"></div>
+                </div>
+                <span class="day-progress-time" id="current-time">—</span>
+            </div>
+
+            <!-- Список -->
+            <div class="section-head">
+                <h2>Моя очередь на сегодня</h2>
+                <span class="section-badge" id="queue-badge">0</span>
+            </div>
+
+            <div id="queue-container">
+                <div class="loading-state">Загрузка очереди...</div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="logo"><div class="logo-icon">Б</div><div><div class="logo-text" style="color:white;"><span>Быт</span>Сервис</div></div></div>
+                <p>Профессиональный ремонт электроники и бытовой техники в Оренбурге. Работаем с 2016 года.</p>
+            </div>
+            <div class="footer-col"><h4>Услуги</h4><ul>
+                <li><a href="services.html">Ремонт смартфонов и планшетов</a></li>
+                <li><a href="services.html">Ремонт ноутбуков и компьютеров</a></li>
+                <li><a href="services.html">Ремонт телевизоров и мониторов</a></li>
+                <li><a href="services.html">Ремонт бытовой техники</a></li>
+                <li><a href="services.html">Ремонт садовой техники</a></li>
+                <li><a href="services.html">Восстановление данных</a></li>
+            </ul></div>
+            <div class="footer-col"><h4>Компания</h4><ul>
+                <li><a href="reviews.html">Отзывы</a></li>
+                <li><a href="prices.html">Цены</a></li>
+                <li><a href="contacts.html">Контакты</a></li>
+            </ul></div>
+            <div class="footer-col"><h4>Контакты</h4><ul>
+                <li><a href="tel:+73532507030">+7 (3532) 50-70-30</a></li>
+                <li><a href="contacts.html">Туркестанская, 2А</a></li>
+                <li><a href="contacts.html">Салмышская, 66/2</a></li>
+                <li><a href="contacts.html">Брестская, 5/2</a></li>
+            </ul></div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 БытСервис. Все права защищены.</span>
+            <span>Оренбург, работаем 24/7</span>
+        </div>
+    </div>
+</footer>
+
+<div class="modal-overlay" id="appointment-modal">
+    <div class="modal">
+        <div class="modal-header"><h3>Онлайн-запись на ремонт</h3><button class="modal-close">&#10005;</button></div>
+        <form class="modal-form" id="appointment-form">
+            <div class="form-section-label">Контактная информация</div>
+            <div class="form-row">
+                <div class="form-group"><label>Ваше имя *</label><input class="form-control" type="text" name="client_name" placeholder="Иван Иванов" required></div>
+                <div class="form-group"><label>Телефон *</label><input class="form-control" type="tel" name="phone" placeholder="+7 (___) ___-__-__" required></div>
+            </div>
+            <div class="form-section-label">Устройство</div>
+            <div class="form-row">
+                <div class="form-group"><label>Тип устройства *</label>
+                    <select class="form-control" name="device_type" required>
+                        <option value="">Выберите тип</option>
+                        <option>Смартфон</option>
+                        <option>Планшет</option>
+                        <option>Ноутбук</option>
+                        <option>Компьютер</option>
+                        <option>Монитор</option>
+                        <option>Телевизор</option>
+                        <option>Техника Apple</option>
+                        <option>Принтер</option>
+                        <option>МФУ / Копир</option>
+                        <option>Фотоаппарат</option>
+                        <option>Игровая консоль</option>
+                        <option>Микроволновка</option>
+                        <option>Кофемашина</option>
+                        <option>Стиральная машина</option>
+                        <option>Холодильник</option>
+                        <option>Кондиционер</option>
+                        <option>Робот-пылесос</option>
+                        <option>Электросамокат</option>
+                        <option>Электроинструмент</option>
+                        <option>Снегоочиститель</option>
+                        <option>Мотокультиватор</option>
+                        <option>Мотопомпа</option>
+                        <option>Бензопила / Электропила</option>
+                        <option>Триммер</option>
+                        <option>Генератор</option>
+                        <option>Заправка картриджей</option>
+                        <option>Восстановление данных</option>
+                        <option>Онлайн-касса</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Модель устройства</label><input class="form-control" type="text" name="device_model" placeholder="iPhone 14..."></div>
+            </div>
+            <div class="form-section-label">Неисправность</div>
+            <div class="form-group"><label>Нужная услуга</label><input class="form-control" type="text" name="service_type" placeholder="Замена экрана..."></div>
+            <div class="form-group"><label>Опишите проблему</label><textarea class="form-control" name="problem" rows="3"></textarea></div>
+            <div class="form-section-label">Дополнительно</div>
+            <div class="form-row">
+                <div class="form-group"><label>Срочность</label>
+                    <select class="form-control" name="urgency"><option value="normal">Обычная (1–3 дня)</option><option value="urgent">Срочно (день в день)</option></select>
+                </div>
+                <div class="form-group"><label>Гарантия?</label>
+                    <select class="form-control" name="has_warranty"><option value="0">Нет / не знаю</option><option value="1">Да, есть чек</option></select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Удобная дата *</label><input class="form-control" type="date" name="preferred_date" required></div>
+                <div class="form-group"><label>Удобное время *</label>
+                    <select class="form-control" name="preferred_time" required>
+                        <option value="">Выберите время</option>
+                        <option>09:00</option><option>10:00</option><option>11:00</option><option>12:00</option><option>13:00</option><option>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option><option>18:00</option><option>19:00</option><option>20:00</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;margin-top:4px;">Отправить заявку</button>
+        </form>
+    </div>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+let currentUser = null;
+
+document.getElementById('login-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    var name = document.getElementById('login-name').value.trim();
+    var pass = document.getElementById('login-pass').value;
+    var errEl = document.getElementById('login-err');
+    errEl.style.display = 'none';
+    try {
+        var res  = await fetch(API + '/auth/login', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({name: name, password: pass})
+        });
+        var data = await res.json();
+        if (data.success && data.user.role === 'master') {
+            currentUser = data.user;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            showPanel();
+        } else {
+            errEl.style.display = 'block';
+            errEl.textContent = data.success ? 'Эта учётная запись не является мастером' : (data.message || 'Неверные данные');
+        }
+    } catch(err) { errEl.style.display = 'block'; errEl.textContent = 'Ошибка соединения'; }
+});
+
+var sseSource = null;
+
+function connectSSE() {
+    if (sseSource) sseSource.close();
+
+    sseSource = new EventSource(API + '/sse/queue?master_id=' + currentUser.id);
+
+    sseSource.addEventListener('connected', function() {
+        console.log('📡 SSE подключён');
+        setSSEStatus('online');
+    });
+
+    sseSource.addEventListener('queue_updated', function(e) {
+        var payload = JSON.parse(e.data);
+        console.log('📡 SSE: обновление очереди', payload.reason);
+
+        // Мягкая анимация — показываем баннер и перезагружаем очередь
+        showUpdateBanner(payload.reason);
+        loadQueue();
+    });
+
+    sseSource.onerror = function() {
+        setSSEStatus('offline');
+        // Переподключаемся через 5 сек
+        setTimeout(connectSSE, 5000);
+    };
+}
+
+function setSSEStatus(status) {
+    var dot = document.getElementById('sse-dot');
+    var label = document.getElementById('sse-label');
+    if (!dot) return;
+    if (status === 'online') {
+        dot.style.background = '#16a34a';
+        label.textContent = 'Обновления в реальном времени';
+    } else {
+        dot.style.background = '#f59e0b';
+        label.textContent = 'Переподключение...';
+    }
+}
+
+function showUpdateBanner(reason) {
+    var banner = document.getElementById('update-banner');
+    if (!banner) return;
+    var messages = {
+        'urgent_added':    '⚡ Добавлен срочный заказ — очередь пересчитана',
+        'schedule_rebuilt':'🔄 Расписание обновлено',
+        'order_done':      '✓ Статус заказа обновлён',
+    };
+    banner.textContent = messages[reason] || '🔄 Очередь обновлена';
+    banner.style.opacity = '1';
+    banner.style.transform = 'translateY(0)';
+    setTimeout(function() {
+        banner.style.opacity = '0';
+        banner.style.transform = 'translateY(-10px)';
+    }, 3000);
+}
+
+function showPanel() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('master-panel').style.display = 'block';
+    document.getElementById('master-header-name').textContent = 'Добро пожаловать, ' + currentUser.name;
+    var nameSpan = document.getElementById('user-cabinet-name');
+    if (nameSpan) { nameSpan.style.display = 'inline'; nameSpan.textContent = currentUser.name.split(' ')[0]; }
+    updateClock();
+    setInterval(updateClock, 60000);
+    loadQueue();
+    // SSE вместо setInterval — получаем обновления мгновенно
+    connectSSE();
+    // Fallback-polling раз в 5 минут на случай если SSE недоступен
+    setInterval(loadQueue, 300000);
+}
+
+function updateClock() {
+    var now = new Date();
+    var h = now.getHours().toString().padStart(2,'0');
+    var m = now.getMinutes().toString().padStart(2,'0');
+    document.getElementById('current-time').textContent = h + ':' + m;
+    var startMin = 9*60, endMin = 21*60;
+    var nowMin = now.getHours()*60 + now.getMinutes();
+    var pct = Math.min(100, Math.max(0, (nowMin-startMin)/(endMin-startMin)*100));
+    document.getElementById('day-progress-bar').style.width = pct + '%';
+}
+
+async function loadQueue() {
+    var container = document.getElementById('queue-container');
+    try {
+        var res  = await fetch(API + '/master/queue?master_id=' + currentUser.id);
+        var data = await res.json();
+        if (!data.success) { container.innerHTML = '<div class="loading-state">Ошибка загрузки</div>'; return; }
+
+        var slots = data.data;
+        var done = slots.filter(function(s){ return s.status === 'done'; }).length;
+        var pending = slots.length - done;
+
+        document.getElementById('stat-total').textContent   = slots.length;
+        document.getElementById('stat-pending').textContent = pending;
+        document.getElementById('stat-done').textContent    = done;
+        document.getElementById('queue-badge').textContent  = pending;
+
+        if (!slots.length) {
+            container.innerHTML = '<div class="empty-queue"><div class="empty-queue-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div><h3>Очередь пуста</h3><p>На сегодня заказов нет. Хорошего дня!</p></div>';
+            return;
+        }
+
+        var html = '<div class="queue-list">';
+        for (var i = 0; i < slots.length; i++) {
+            html += renderSlot(slots[i], i + 1);
+        }
+        html += '</div>';
+        container.innerHTML = html;
+    } catch(err) { container.innerHTML = '<div class="loading-state">Ошибка соединения</div>'; }
+}
+
+function fmtTime(dt) {
+    var d = new Date(dt);
+    return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+
+function renderSlot(s, position) {
+    var isDone   = s.status === 'done';
+    var isUrgent = s.urgency === 'urgent' || s.priority === 1;
+    var now      = new Date();
+    var endDt    = new Date(s.end_time);
+    var isOverdue = !isDone && endDt < now;
+
+    var urgentBadge = isUrgent ? '<span class="badge-urgent"><svg width="11" height="11" viewBox="0 0 24 24" fill="var(--primary)"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>СРОЧНО</span>' : '';
+    var doneBadge   = isDone   ? '<span class="badge-done">&#10003; Выполнено</span>' : '';
+    var timeClass   = isOverdue ? 'slot-time overdue' : 'slot-time';
+    var slotClass   = 'order-slot' + (isUrgent ? ' urgent' : '') + (isDone ? ' done-slot' : '');
+
+    var deadlineHtml = '';
+    if (s.deadline) {
+        var dl = new Date(s.deadline);
+        var dlOver = dl < now && !isDone;
+        deadlineHtml = '<div class="slot-field"><span class="slot-label">Дедлайн</span><span class="slot-value" style="color:' + (dlOver ? 'var(--primary)' : 'inherit') + ';font-weight:' + (dlOver ? '700' : '500') + '">' + (dlOver ? '&#9888; ' : '') + dl.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'}) + '</span></div>';
+    }
+
+    var problemHtml = '';
+    if (s.problem) {
+        problemHtml = '<div class="slot-problem ' + (isUrgent ? 'urgent-border' : '') + '"><strong style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--gray);">Неисправность:</strong><br>' + s.problem + '</div>';
+    }
+
+    var equipHtml = '';
+    if (s.equipment_name) {
+        equipHtml = '<div class="slot-equip"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>' + s.equipment_name + '</div>';
+    }
+
+    var footHtml = isDone
+        ? '<span style="font-size:13px;color:#16a34a;font-weight:600;">&#10003; Заказ передан администратору</span>'
+        : '<button class="btn-complete" onclick="completeOrder(' + s.order_id + ', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Отметить выполненным</button>';
+
+    return '<div class="' + slotClass + '">' +
+        '<div class="order-slot-inner">' +
+            '<div class="slot-head">' +
+                '<div class="slot-head-left">' +
+                    '<span class="slot-num">#<span>' + position + '</span> &nbsp; Заказ #' + s.order_id + '</span>' +
+                    urgentBadge + doneBadge +
+                '</div>' +
+                '<div class="' + timeClass + '">' +
+                    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' +
+                    fmtTime(s.start_time) + ' — ' + fmtTime(s.end_time) + (isOverdue ? ' &#9888;' : '') +
+                '</div>' +
+            '</div>' +
+            '<div class="slot-body">' +
+                '<div class="slot-field"><span class="slot-label">Клиент</span><span class="slot-value"><strong>' + s.client_name + '</strong></span></div>' +
+                '<div class="slot-field"><span class="slot-label">Телефон</span><span class="slot-value"><a href="tel:' + s.phone + '" style="color:var(--accent);font-weight:600;">' + s.phone + '</a></span></div>' +
+                '<div class="slot-field"><span class="slot-label">Устройство</span><span class="slot-value">' + s.device_type + (s.device_model ? ' · ' + s.device_model : '') + '</span></div>' +
+                deadlineHtml +
+            '</div>' +
+            problemHtml +
+            equipHtml +
+            '<div class="slot-foot">' + footHtml + '</div>' +
+        '</div>' +
+    '</div>';
+}
+
+async function completeOrder(orderId, btn) {
+    if (!confirm('Отметить заказ #' + orderId + ' как выполненный?\nАдминистратор получит уведомление.')) return;
+    btn.disabled = true;
+    btn.textContent = 'Сохраняем...';
+    try {
+        var res  = await fetch(API + '/master/complete/' + orderId, {
+            method: 'PATCH', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({master_id: currentUser.id})
+        });
+        var data = await res.json();
+        if (data.success) {
+            showToast('&#10003; Заказ #' + orderId + ' выполнен! Администратор уведомлён.');
+            setTimeout(loadQueue, 800);
+        } else {
+            showToast(data.message || 'Ошибка', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Отметить выполненным';
+        }
+    } catch(err) {
+        showToast('Ошибка соединения', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Отметить выполненным';
+    }
+}
+
+(function init() {
+    var saved = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    if (saved && saved.role === 'master') {
+        currentUser = saved;
+        showPanel();
+    } else {
+        document.getElementById('login-screen').style.display = 'flex';
+    }
+})();
+</script>
+</body>
+</html>

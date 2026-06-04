@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>БытСервис</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .branch-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+        .branch-card:hover { transform: translateY(-4px); }
+        .branch-card-body { padding: 24px; }
+        .branch-card h3 { font-size: 17px; margin-bottom: 8px; }
+        .branch-card p { font-size: 14px; color: #6b7280; }
+        .branches-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        @media (max-width: 768px) { .branches-grid { grid-template-columns: 1fr; } }
+
+        .branch-map {
+            margin-top: 12px;
+            border-radius: 12px;
+            overflow: hidden;
+            height: 200px;
+        }
+        .branch-map iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        /* Кнопка "Маршрут" */
+        .branch-route-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #e63329;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        .branch-route-btn:hover { opacity: 0.75; }
+        .branch-route-btn svg { flex-shrink: 0; }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="container">
+        <div class="topbar-left">
+            <span class="dot"></span> Работаем 24/7
+        </div>
+        <div class="topbar-right">
+            <a href="contacts.html">Оренбург, Туркестанская, 2А</a>
+            <a href="contacts.html">Оренбург, Салмышская, 66/2</a>
+            <a href="contacts.html">Оренбург, Брестская, 5/2</a>
+        </div>
+    </div>
+</div>
+
+<header>
+    <div class="container">
+        <a href="../index.html" class="logo">
+            <div class="logo-icon">Б</div>
+            <div>
+                <div class="logo-text"><span>Быт</span>Сервис</div>
+                <div class="logo-sub">Ремонт электроники и бытовой техники</div>
+            </div>
+        </a>
+        <nav>
+            <a href="../index.html">Главная</a>
+            <a href="services.html">Услуги</a>
+            <a href="prices.html">Цены</a>
+            <a href="reviews.html">Отзывы</a>
+            <a href="contacts.html" class="active">Контакты</a>
+            <a href="#" id="user-cabinet-btn" class="user-icon-link" title="Личный кабинет">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span id="user-cabinet-name" style="display:none; font-size:14px; font-weight:600; margin-left:6px;"></span>
+            </a>
+        </nav>
+        <div class="header-actions">
+            <a href="tel:+73532507030" class="phone-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 5a2 2 0 0 1 1.95-2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.09a16 16 0 0 0 6 6l.9-.9a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                +7 (3532) 50-70-30
+            </a>
+            <button class="btn btn-primary" data-modal="appointment-modal">Записаться</button>
+            <button class="burger"><span></span><span></span><span></span></button>
+        </div>
+    </div>
+</header>
+
+<div style="background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; padding: 48px 0;">
+    <div class="container">
+        <div style="font-size:13px; color: rgba(255,255,255,0.5); margin-bottom:12px;">
+            <a href="../index.html" style="color: rgba(255,255,255,0.5);">Главная</a> &rarr; Контакты
+        </div>
+        <h1 style="font-size:36px;">Контакты</h1>
+        <p style="color: rgba(255,255,255,0.7); margin-top:8px;">Три удобных филиала в Оренбурге</p>
+    </div>
+</div>
+
+<section>
+    <div class="container">
+        <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:20px; margin-bottom:48px;">
+            <div class="contact-card">
+                <div class="contact-card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 5a2 2 0 0 1 1.95-2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.09a16 16 0 0 0 6 6l.9-.9a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </div>
+                <div><h4>Телефон</h4><a href="tel:+73532507030">+7 (3532) 50-70-30</a></div>
+            </div>
+            <div class="contact-card">
+                <div class="contact-card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div><h4>Режим работы</h4><p>Круглосуточно, 24/7</p></div>
+            </div>
+            <div class="contact-card">
+                <div class="contact-card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <div><h4>Мессенджеры</h4><p>WhatsApp &middot; Telegram</p></div>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <span class="section-label">Адреса</span>
+            <h2>Наши филиалы</h2>
+        </div>
+
+        <div class="branches-grid">
+
+  
+            <div class="branch-card">
+                <div style="background: var(--primary); height:6px;"></div>
+                <div class="branch-card-body">
+                    <h3>Филиал в Степном</h3>
+                    <p style="margin-bottom:4px;"><strong>Оренбург, Салмышская, 66/2</strong></p>
+                    <p>Работает круглосуточно</p>
+                    <div class="branch-map">
+                        <iframe
+                            src="https://yandex.ru/map-widget/v1/?ll=55.088600%2C51.779500&z=16&pt=55.088600,51.779500,pm2rdm&l=map"
+                            allowfullscreen
+                            loading="lazy"
+                            title="Филиал на Салмышской">
+                        </iframe>
+                    </div>
+                    <a class="branch-route-btn"
+                       href="https://yandex.ru/maps/?rtext=~51.779500,55.088600&rtt=auto"
+                       target="_blank" rel="noopener">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+                        Построить маршрут
+                    </a>
+                </div>
+            </div>
+
+   
+            <div class="branch-card">
+                <div style="background: var(--primary); height:6px;"></div>
+                <div class="branch-card-body">
+                    <h3>Филиал в Центре</h3>
+                    <p style="margin-bottom:4px;"><strong>Оренбург, Туркестанская, 2А</strong></p>
+                    <p>Работает круглосуточно</p>
+                    <div class="branch-map">
+                        <iframe
+                            src="https://yandex.ru/map-widget/v1/?ll=55.100100%2C51.768300&z=16&pt=55.100100,51.768300,pm2rdm&l=map"
+                            allowfullscreen
+                            loading="lazy"
+                            title="Филиал на Туркестанской">
+                        </iframe>
+                    </div>
+                    <a class="branch-route-btn"
+                       href="https://yandex.ru/maps/?rtext=~51.768300,55.100100&rtt=auto"
+                       target="_blank" rel="noopener">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+                        Построить маршрут
+                    </a>
+                </div>
+            </div>
+
+            <!-- Филиал 3: Брестская -->
+            <div class="branch-card">
+                <div style="background: var(--primary); height:6px;"></div>
+                <div class="branch-card-body">
+                    <h3>Филиал на Брестской</h3>
+                    <p style="margin-bottom:4px;"><strong>Оренбург, Брестская, 5/2</strong></p>
+                    <p>Работает круглосуточно</p>
+                    <div class="branch-map">
+                        <iframe
+                            src="https://yandex.ru/map-widget/v1/?ll=55.105000%2C51.775000&z=16&pt=55.105000,51.775000,pm2rdm&l=map"
+                            allowfullscreen
+                            loading="lazy"
+                            title="Филиал на Брестской">
+                        </iframe>
+                    </div>
+                    <a class="branch-route-btn"
+                       href="https://yandex.ru/maps/?rtext=~51.775000,55.105000&rtt=auto"
+                       target="_blank" rel="noopener">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+                        Построить маршрут
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="logo">
+                    <div class="logo-icon">Б</div>
+                    <div><div class="logo-text" style="color:white;"><span>Быт</span>Сервис</div></div>
+                </div>
+                <p>Профессиональный ремонт электроники и бытовой техники в Оренбурге. Работаем с 2016 года.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Услуги</h4>
+                <ul>
+                    <li><a href="services.html">Ремонт смартфонов и планшетов</a></li>
+                    <li><a href="services.html">Ремонт ноутбуков и компьютеров</a></li>
+                    <li><a href="services.html">Ремонт телевизоров и мониторов</a></li>
+                    <li><a href="services.html">Ремонт бытовой техники</a></li>
+                    <li><a href="services.html">Ремонт садовой техники</a></li>
+                    <li><a href="services.html">Восстановление данных</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Компания</h4>
+                <ul>
+                    <li><a href="reviews.html">Отзывы</a></li>
+                    <li><a href="prices.html">Цены</a></li>
+                    <li><a href="contacts.html">Контакты</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Контакты</h4>
+                <ul>
+                    <li><a href="tel:+73532507030">+7 (3532) 50-70-30</a></li>
+                    <li><a href="contacts.html">Туркестанская, 2А</a></li>
+                    <li><a href="contacts.html">Салмышская, 66/2</a></li>
+                    <li><a href="contacts.html">Брестская, 5/2</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 БытСервис. Все права защищены.</span>
+            <span>Оренбург, работаем 24/7</span>
+        </div>
+    </div>
+</footer>
+
+<div class="modal-overlay" id="appointment-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Онлайн-запись на ремонт</h3>
+            <button class="modal-close">&#10005;</button>
+        </div>
+                <form class="modal-form" id="appointment-form">
+            <!-- Шаг 1: Контакты -->
+            <div class="form-section-label">Контактная информация</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Ваше имя *</label>
+                    <input class="form-control" type="text" name="client_name" placeholder="Иван Иванов" required>
+                </div>
+                <div class="form-group">
+                    <label>Телефон *</label>
+                    <input class="form-control" type="tel" name="phone" placeholder="+7 (___) ___-__-__" required>
+                </div>
+            </div>
+
+            <!-- Шаг 2: Устройство -->
+            <div class="form-section-label">Устройство</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Тип устройства *</label>
+                    <select class="form-control" name="device_type" required>
+                        <option value="">Выберите тип</option>
+                        <option>Смартфон</option>
+                        <option>Планшет</option>
+                        <option>Ноутбук</option>
+                        <option>Компьютер</option>
+                        <option>Монитор</option>
+                        <option>Телевизор</option>
+                        <option>Техника Apple</option>
+                        <option>Принтер</option>
+                        <option>МФУ / Копир</option>
+                        <option>Фотоаппарат</option>
+                        <option>Игровая консоль</option>
+                        <option>Микроволновка</option>
+                        <option>Кофемашина</option>
+                        <option>Стиральная машина</option>
+                        <option>Холодильник</option>
+                        <option>Кондиционер</option>
+                        <option>Робот-пылесос</option>
+                        <option>Электросамокат</option>
+                        <option>Электроинструмент</option>
+                        <option>Снегоочиститель</option>
+                        <option>Мотокультиватор</option>
+                        <option>Мотопомпа</option>
+                        <option>Бензопила / Электропила</option>
+                        <option>Триммер</option>
+                        <option>Генератор</option>
+                        <option>Заправка картриджей</option>
+                        <option>Восстановление данных</option>
+                        <option>Онлайн-касса</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Модель устройства</label>
+                    <input class="form-control" type="text" name="device_model" placeholder="iPhone 14, Samsung Galaxy S23...">
+                </div>
+            </div>
+
+            <!-- Шаг 3: Услуга и проблема -->
+            <div class="form-section-label">Неисправность</div>
+            <div class="form-group">
+                <label>Нужная услуга</label>
+                <input class="form-control" type="text" name="service_type" placeholder="Замена экрана, чистка от пыли...">
+            </div>
+            <div class="form-group">
+                <label>Опишите проблему подробнее</label>
+                <textarea class="form-control" name="problem" rows="3" placeholder="Треснул экран после падения, не реагирует на касание в нижней части..."></textarea>
+            </div>
+
+            <!-- Шаг 4: Доп. информация -->
+            <div class="form-section-label">Дополнительно</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Срочность</label>
+                    <select class="form-control" name="urgency">
+                        <option value="normal">Обычная (1–3 дня)</option>
+                        <option value="urgent">Срочно (день в день)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Устройство на гарантии?</label>
+                    <select class="form-control" name="has_warranty">
+                        <option value="0">Нет / не знаю</option>
+                        <option value="1">Да, есть чек/гарантия</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Удобная дата *</label>
+                    <input class="form-control" type="date" name="preferred_date" required>
+                </div>
+                <div class="form-group">
+                    <label>Удобное время *</label>
+                    <select class="form-control" name="preferred_time" required>
+                        <option value="">Выберите время</option>
+                        <option>09:00</option><option>10:00</option><option>11:00</option>
+                        <option>12:00</option><option>13:00</option><option>14:00</option>
+                        <option>15:00</option><option>16:00</option><option>17:00</option>
+                        <option>18:00</option><option>19:00</option><option>20:00</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:4px;">Отправить заявку</button>
+        </form>
+
+    </div>
+</div>
+
+<script src="../js/main.js"></script>
+</body>
+</html>
