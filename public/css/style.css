@@ -1056,6 +1056,8 @@ footer {
     padding: 36px;
     width: 100%;
     max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
     transform: translateY(20px);
     transition: transform var(--transition);
 }
@@ -1214,6 +1216,8 @@ header .container { gap: 10px; }
     .form-row { grid-template-columns: 1fr; }
     .topbar-right { display: none; }
     .services-grid { grid-template-columns: 1fr; }
+    .modal { padding: 20px; border-radius: 16px; max-height: 85vh; }
+.modal-overlay { padding: 12px; align-items: flex-start; padding-top: 40px; }
 }
 
 @media (max-width: 480px) {
