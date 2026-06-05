@@ -183,7 +183,7 @@
             <form id="review-form-page" novalidate>
                 <div class="form-row-review">
                     <div class="form-group-review">
-                        <label>Ваше имя *</label>
+                        <label>Имя и фамилия *</label>
                         <input class="form-control" type="text" name="client_name" placeholder="Иван Иванов" required>
                     </div>
                     <div class="form-group-review">
@@ -284,7 +284,7 @@
             <div class="form-section-label">Контактная информация</div>
             <div class="form-row">
                 <div class="form-group">
-                    <label>Ваше имя *</label>
+                    <label>Имя и фамилия *</label>
                     <input class="form-control" type="text" name="client_name" placeholder="Иван Иванов" required>
                 </div>
                 <div class="form-group">
@@ -498,7 +498,7 @@ document.getElementById('review-form-page').addEventListener('submit', async (e)
 
     if (nameEl.value.trim().length < 2) {
         nameEl.classList.add('error-border'); nameEl.focus();
-        showToast('Введите ваше имя (минимум 2 символа)', 'error'); return;
+        showToast('Введите ваше имя и фамилию (минимум 2 символа)', 'error'); return;
     }
     if (textEl.value.trim().length < 10) {
         textEl.classList.add('error-border'); textEl.focus();
