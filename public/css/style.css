@@ -1512,3 +1512,5 @@ header .container { gap: 10px; }
     white-space: nowrap;
     flex-shrink: 0;
 }
+.modal { padding: 20px; border-radius: 16px; }
+.modal-overlay { padding: 12px; }
