@@ -59,7 +59,7 @@ app.post('/api/auth/register', async (req, res) => {
 
     // Проверка формата имени
     if (!NAME_REGEX.test(name.trim())) {
-        return res.status(400).json({ success: false, message: 'Некорректное имя пользователя' });
+        return res.status(400).json({ success: false, message: 'Некорректное имя или фамилия пользователя' });
     }
 
     // Проверка формата телефона
