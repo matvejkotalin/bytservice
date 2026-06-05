@@ -1,4 +1,4 @@
-const API = 'http://2.27.4.124:4000/api';
+const API = 'https://bytservice.online/api';
 
 function showToast(msg, type = 'success') {
     const old = document.querySelector('.toast');
