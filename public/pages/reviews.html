@@ -13,7 +13,7 @@
         }
         .reviews-hero h1 { font-size: 36px; margin-bottom: 8px; }
         .reviews-hero p { color: rgba(255,255,255,0.7); }
-        .reviews-stats { display: flex; gap: 32px; margin-top: 24px; }
+.reviews-stats { display: flex; gap: 24px; margin-top: 24px; flex-wrap: wrap; }
         .reviews-stat { text-align: center; }
         .reviews-stat-num { font-size: 40px; font-weight: 800; color: #e63329; font-family: 'Montserrat',sans-serif; line-height: 1; }
         .reviews-stat-label { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; }
@@ -21,7 +21,7 @@
         .reviews-grid-page { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; width: 100%; box-sizing: border-box; }
         @media (max-width:900px) { .reviews-grid-page { grid-template-columns: repeat(2,1fr); } }
         @media (max-width:580px) { .reviews-grid-page { grid-template-columns: 1fr; } }
-
+@media (max-width: 480px) { .reviews-stats { gap: 16px; } .reviews-stat-num { font-size: 28px; } }
         .review-card-page {
             background: white; border-radius: 16px; padding: 24px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.07); border: 1px solid #f0f0f0;
