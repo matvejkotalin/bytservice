@@ -1218,6 +1218,7 @@ header .container { gap: 10px; }
     .services-grid { grid-template-columns: 1fr; }
     .modal { padding: 20px; border-radius: 16px; max-height: 85vh; }
 .modal-overlay { padding: 12px; align-items: center; }
+.cabinet-tabs { margin-left: 0; overflow-x: auto; width: 100%; justify-content: center; }
 }
 
 @media (max-width: 480px) {
