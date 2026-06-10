@@ -1659,7 +1659,23 @@
 
             document.getElementById('logout-btn').addEventListener('click', doLogout);
             document.getElementById('logout-btn-security').addEventListener('click', doLogout);
-
+// ── SSE: уведомления в реальном времени ──
+if (user.role === 'user' && user.phone) {
+    const evtSource = new EventSource(
+        `${API}/sse/cabinet?phone=${encodeURIComponent(user.phone)}`
+    );
+    evtSource.addEventListener('order_status', function(e) {
+        try {
+            const payload = JSON.parse(e.data);
+            if (payload.message && typeof showToast === 'function') {
+                showToast(payload.message);
+            }
+            // Обновляем список заявок
+            loadOrders();
+        } catch {}
+    });
+    window.addEventListener('beforeunload', () => evtSource.close());
+}
         })();
     </script>
 </body>
